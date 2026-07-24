@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  /* Dark slate surfaces */
+  --color-bg: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-2: #334155;
+  --color-border: #334155;
+
+  /* Text */
+  --color-fg: #f1f5f9;
+  --color-muted: #94a3b8;
+  --color-faint: #64748b;
+
+  /* Neon accents */
+  --color-accent: #22d3ee;
+  --color-accent-2: #a78bfa;
+  --color-accent-3: #fbbf24;
+  --color-success: #34d399;
+  --color-danger: #f87171;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-bg text-fg antialiased;
+}
