@@ -1,0 +1,9 @@
+services:
+  healthapp:
+    build: .
+    image: healthapp:latest
+    ports:
+      - "3420:3420"
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

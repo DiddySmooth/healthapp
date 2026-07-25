@@ -7,7 +7,11 @@ import * as schema from "./schema.js";
 
 export type Db = BetterSQLite3Database<typeof schema>;
 
-const migrationsFolder = path.join(import.meta.dirname, "..", "..", "drizzle");
+// In dev this resolves to server/drizzle; the Docker image sets
+// MIGRATIONS_DIR explicitly because bundling changes import.meta.dirname.
+const migrationsFolder =
+  process.env.MIGRATIONS_DIR ??
+  path.join(import.meta.dirname, "..", "..", "drizzle");
 
 export function openDb(file: string): Db {
   if (file !== ":memory:") {
