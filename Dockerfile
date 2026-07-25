@@ -30,10 +30,12 @@ RUN npm ci --omit=dev --workspace server
 FROM node:22-bookworm-slim
 ENV NODE_ENV=production
 ENV MIGRATIONS_DIR=/app/server/drizzle
+ENV EXERCISE_DB_DIR=/app/server/exercise-db
 WORKDIR /app
 COPY --from=prod-deps /app/node_modules node_modules
 COPY --from=server-build /app/server/dist server/dist
 COPY server/drizzle server/drizzle
+COPY server/exercise-db server/exercise-db
 COPY --from=client-build /app/client/dist server/dist/public
 EXPOSE 3420
 VOLUME /data

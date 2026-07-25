@@ -45,3 +45,39 @@ export const sessions = sqliteTable("sessions", {
   sess: text("sess").notNull(),
   expire: integer("expire").notNull(),
 });
+
+// How an exercise is logged; drives which set fields the UI collects.
+export type LogType = "strength" | "bodyweight" | "cardio" | "duration";
+
+export const exercises = sqliteTable("exercises", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  // Dataset id for bundled exercises (e.g. "3_4_Sit-Up"); null for custom.
+  externalId: text("external_id").unique(),
+  // null = bundled (visible to everyone); otherwise the owning user.
+  ownerId: integer("owner_id").references(() => users.id),
+  name: text("name").notNull(),
+  logType: text("log_type", {
+    enum: ["strength", "bodyweight", "cardio", "duration"],
+  }).notNull(),
+  datasetCategory: text("dataset_category"),
+  level: text("level"),
+  mechanic: text("mechanic"),
+  force: text("force"),
+  equipment: text("equipment"),
+  primaryMuscles: text("primary_muscles", { mode: "json" })
+    .$type<string[]>()
+    .notNull()
+    .default([]),
+  secondaryMuscles: text("secondary_muscles", { mode: "json" })
+    .$type<string[]>()
+    .notNull()
+    .default([]),
+  instructions: text("instructions", { mode: "json" })
+    .$type<string[]>()
+    .notNull()
+    .default([]),
+  images: text("images", { mode: "json" }).$type<string[]>().notNull().default([]),
+  isDeleted: integer("is_deleted", { mode: "boolean" }).notNull().default(false),
+});
+
+export type Exercise = typeof exercises.$inferSelect;

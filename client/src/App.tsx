@@ -1,6 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { useAuthStatus, useMe } from "./lib/auth";
+import ExerciseDetail from "./pages/ExerciseDetail";
+import ExerciseForm from "./pages/ExerciseForm";
+import ExerciseLibrary from "./pages/ExerciseLibrary";
 import Login from "./pages/Login";
 import Placeholder from "./pages/Placeholder";
 import Settings from "./pages/Settings";
@@ -26,7 +29,10 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route index element={<Placeholder title="Dashboard" />} />
-        <Route path="workouts" element={<Placeholder title="Workouts" />} />
+        <Route path="workouts" element={<ExerciseLibrary />} />
+        <Route path="workouts/exercises/new" element={<ExerciseForm />} />
+        <Route path="workouts/exercises/:id" element={<ExerciseDetail />} />
+        <Route path="workouts/exercises/:id/edit" element={<ExerciseForm />} />
         <Route path="food" element={<Placeholder title="Food" />} />
         <Route path="progress" element={<Placeholder title="Progress" />} />
         <Route path="settings" element={<Settings />} />

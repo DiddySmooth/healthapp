@@ -8,8 +8,10 @@ import { SqliteSessionStore } from "./auth/store.js";
 import { config } from "./config.js";
 import type { Db } from "./db/index.js";
 import { appMeta } from "./db/schema.js";
+import { exerciseDbDir } from "./db/seed.js";
 import { errorHandler } from "./lib/errors.js";
 import { authRoutes } from "./routes/auth.js";
+import { exerciseRoutes } from "./routes/exercises.js";
 import { userRoutes } from "./routes/users.js";
 
 // The session secret is generated once per instance and persisted so
@@ -54,6 +56,16 @@ export function buildApp(db: Db, clientDist: string = config.clientDist): Expres
 
   app.use("/api/auth", authRoutes(db));
   app.use("/api/users", userRoutes(db));
+  app.use("/api/exercises", exerciseRoutes(db));
+
+  // Bundled exercise images (immutable dataset — cache hard).
+  app.use(
+    "/exercise-images",
+    express.static(path.join(exerciseDbDir, "images"), {
+      maxAge: "30d",
+      immutable: true,
+    }),
+  );
 
   app.use("/api", (_req, res) => {
     res.status(404).json({ error: { code: "NOT_FOUND", message: "Unknown API route" } });

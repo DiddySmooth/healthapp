@@ -8,6 +8,7 @@ export default defineConfig({
     proxy: {
       "/api": "http://localhost:3420",
       "/healthz": "http://localhost:3420",
+      "/exercise-images": "http://localhost:3420",
     },
   },
 });
