@@ -1,40 +1,37 @@
-import { useQuery } from "@tanstack/react-query";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
+import Layout from "./components/Layout";
+import { useAuthStatus, useMe } from "./lib/auth";
+import Login from "./pages/Login";
+import Placeholder from "./pages/Placeholder";
+import Settings from "./pages/Settings";
+import SetupWizard from "./pages/SetupWizard";
 
-function Home() {
-  const health = useQuery({
-    queryKey: ["healthz"],
-    queryFn: async () => {
-      const res = await fetch("/healthz");
-      if (!res.ok) throw new Error("health check failed");
-      return (await res.json()) as { status: string };
-    },
-  });
-
+function Splash() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6">
-      <h1 className="text-3xl font-bold">
-        Health<span className="text-accent">App</span>
-      </h1>
-      <p className="text-muted">Self-hosted workout & nutrition tracker</p>
-      <div className="rounded-lg bg-surface px-4 py-2 text-sm">
-        Server:{" "}
-        {health.isLoading ? (
-          <span className="text-faint">checking…</span>
-        ) : health.isError ? (
-          <span className="text-danger">unreachable</span>
-        ) : (
-          <span className="text-success">{health.data?.status}</span>
-        )}
-      </div>
+    <div className="flex min-h-screen items-center justify-center">
+      <p className="text-muted">Loading…</p>
     </div>
   );
 }
 
 export default function App() {
+  const status = useAuthStatus();
+  const me = useMe();
+
+  if (status.isLoading || me.isLoading) return <Splash />;
+  if (status.data?.needsSetup) return <SetupWizard />;
+  if (!me.data) return <Login />;
+
   return (
     <Routes>
-      <Route path="*" element={<Home />} />
+      <Route element={<Layout />}>
+        <Route index element={<Placeholder title="Dashboard" />} />
+        <Route path="workouts" element={<Placeholder title="Workouts" />} />
+        <Route path="food" element={<Placeholder title="Food" />} />
+        <Route path="progress" element={<Placeholder title="Progress" />} />
+        <Route path="settings" element={<Settings />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Route>
     </Routes>
   );
 }
