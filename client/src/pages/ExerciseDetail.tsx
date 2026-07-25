@@ -32,13 +32,13 @@ export default function ExerciseDetail() {
 
   function confirmDelete() {
     if (window.confirm(`Delete "${ex.name}"? Past workout history keeps it.`)) {
-      remove.mutate(ex.id, { onSuccess: () => navigate("/workouts") });
+      remove.mutate(ex.id, { onSuccess: () => navigate("/workouts/exercises") });
     }
   }
 
   return (
     <div className="mx-auto max-w-3xl">
-      <Link to="/workouts" className="text-sm text-muted hover:text-fg">
+      <Link to="/workouts/exercises" className="text-sm text-muted hover:text-fg">
         ← Back to exercises
       </Link>
 

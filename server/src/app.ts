@@ -12,6 +12,8 @@ import { exerciseDbDir } from "./db/seed.js";
 import { errorHandler } from "./lib/errors.js";
 import { authRoutes } from "./routes/auth.js";
 import { exerciseRoutes } from "./routes/exercises.js";
+import { routineRoutes } from "./routes/routines.js";
+import { scheduleRoutes } from "./routes/schedule.js";
 import { userRoutes } from "./routes/users.js";
 
 // The session secret is generated once per instance and persisted so
@@ -57,6 +59,8 @@ export function buildApp(db: Db, clientDist: string = config.clientDist): Expres
   app.use("/api/auth", authRoutes(db));
   app.use("/api/users", userRoutes(db));
   app.use("/api/exercises", exerciseRoutes(db));
+  app.use("/api/routines", routineRoutes(db));
+  app.use("/api/schedule", scheduleRoutes(db));
 
   // Bundled exercise images (immutable dataset — cache hard).
   app.use(

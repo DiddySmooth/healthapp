@@ -1,4 +1,4 @@
-import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 // Instance-level key/value metadata (instance id, session secret, setup state).
 export const appMeta = sqliteTable("app_meta", {
@@ -81,3 +81,53 @@ export const exercises = sqliteTable("exercises", {
 });
 
 export type Exercise = typeof exercises.$inferSelect;
+
+export const routines = sqliteTable("routines", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  name: text("name").notNull(),
+  description: text("description"),
+  isArchived: integer("is_archived", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const routineExercises = sqliteTable("routine_exercises", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  routineId: integer("routine_id")
+    .notNull()
+    .references(() => routines.id, { onDelete: "cascade" }),
+  exerciseId: integer("exercise_id")
+    .notNull()
+    .references(() => exercises.id),
+  position: integer("position").notNull(),
+  targetSets: integer("target_sets"),
+  targetReps: integer("target_reps"),
+  // Stored in the user's weight unit as entered.
+  targetWeight: real("target_weight"),
+  targetDurationSec: integer("target_duration_sec"),
+  targetDistance: real("target_distance"),
+  notes: text("notes"),
+});
+
+export type Routine = typeof routines.$inferSelect;
+export type RoutineExercise = typeof routineExercises.$inferSelect;
+
+// A routine planned for a recurring weekday (0=Sunday..6=Saturday) or a
+// specific date (YYYY-MM-DD); exactly one of the two is set.
+export const schedule = sqliteTable("schedule", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  routineId: integer("routine_id")
+    .notNull()
+    .references(() => routines.id, { onDelete: "cascade" }),
+  weekday: integer("weekday"),
+  date: text("date"),
+});
+
+export type ScheduleEntry = typeof schedule.$inferSelect;

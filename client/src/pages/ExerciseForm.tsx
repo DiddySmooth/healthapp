@@ -108,7 +108,7 @@ export default function ExerciseForm() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <Link to="/workouts" className="text-sm text-muted hover:text-fg">
+      <Link to="/workouts/exercises" className="text-sm text-muted hover:text-fg">
         ← Back to exercises
       </Link>
       <h1 className="mt-2 mb-4 text-2xl font-bold">
