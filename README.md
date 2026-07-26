@@ -1,5 +1,7 @@
 # HealthApp
 
+[![CI](https://github.com/DiddySmooth/healthapp/actions/workflows/ci.yml/badge.svg)](https://github.com/DiddySmooth/healthapp/actions/workflows/ci.yml)
+
 A self-hosted workout planner/tracker and calorie counter, in the spirit of
 Audiobookshelf: run one Docker container, open the web UI, create your admin
 account, done. All data stays on your server in a single mounted folder.
@@ -42,7 +44,7 @@ Works great on both desktop and phone (responsive dark UI).
 # docker-compose.yml
 services:
   healthapp:
-    image: healthapp:latest
+    image: ghcr.io/diddysmooth/healthapp:latest
     ports:
       - "3420:3420"
     volumes:
@@ -57,10 +59,10 @@ docker compose up -d
 Open `http://your-server:3420`, and the first-run wizard will ask you to create
 the admin account and pick your units and timezone.
 
-To build the image from source:
+To build the image from source instead:
 
 ```bash
-git clone <this repo> && cd HealthApp
+git clone https://github.com/DiddySmooth/healthapp.git && cd healthapp
 docker compose up -d --build
 ```
 
@@ -104,7 +106,7 @@ client and the API from a single port.
 
 ## License
 
-Application code: MIT. Bundled exercise dataset and images are public domain
+Application code: [MIT](LICENSE). Bundled exercise dataset and images are public domain
 ([Unlicense](server/exercise-db/LICENSE.md)) from free-exercise-db. Food
 lookups are powered by [Open Food Facts](https://world.openfoodfacts.org)
 (Open Database License).
