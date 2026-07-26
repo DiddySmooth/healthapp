@@ -43,6 +43,10 @@ export type UserSettings = {
   distanceUnit: "mi" | "km";
   timezone: string;
   weekStart: "monday" | "sunday";
+  calorieTarget: number | null;
+  proteinTarget: number | null;
+  carbsTarget: number | null;
+  fatTarget: number | null;
 };
 
 export type User = {

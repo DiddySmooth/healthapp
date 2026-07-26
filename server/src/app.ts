@@ -12,6 +12,9 @@ import { exerciseDbDir } from "./db/seed.js";
 import { errorHandler } from "./lib/errors.js";
 import { authRoutes } from "./routes/auth.js";
 import { exerciseRoutes } from "./routes/exercises.js";
+import { foodLogRoutes } from "./routes/foodlog.js";
+import { foodRoutes } from "./routes/foods.js";
+import { lookupRoutes, type FetchLike } from "./routes/lookup.js";
 import { routineRoutes } from "./routes/routines.js";
 import { scheduleRoutes } from "./routes/schedule.js";
 import { sessionRoutes } from "./routes/sessions.js";
@@ -32,7 +35,11 @@ function sessionSecret(db: Db): string {
   return secret;
 }
 
-export function buildApp(db: Db, clientDist: string = config.clientDist): Express {
+export function buildApp(
+  db: Db,
+  clientDist: string = config.clientDist,
+  options: { offFetch?: FetchLike } = {},
+): Express {
   const app = express();
   app.disable("x-powered-by");
   app.set("trust proxy", 1);
@@ -65,6 +72,9 @@ export function buildApp(db: Db, clientDist: string = config.clientDist): Expres
   app.use("/api/schedule", scheduleRoutes(db));
   app.use("/api/sessions", sessionRoutes(db));
   app.use("/api/stats", statsRoutes(db));
+  app.use("/api/foods", foodRoutes(db));
+  app.use("/api/food-log", foodLogRoutes(db));
+  app.use("/api/lookup", lookupRoutes(db, options.offFetch));
 
   // Bundled exercise images (immutable dataset — cache hard).
   app.use(

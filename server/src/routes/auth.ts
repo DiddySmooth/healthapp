@@ -25,6 +25,10 @@ export const settingsSchema = z.object({
   distanceUnit: z.enum(["mi", "km"]),
   timezone: z.string().min(1).max(64),
   weekStart: z.enum(["monday", "sunday"]),
+  calorieTarget: z.number().min(0).max(20000).nullable(),
+  proteinTarget: z.number().min(0).max(2000).nullable(),
+  carbsTarget: z.number().min(0).max(3000).nullable(),
+  fatTarget: z.number().min(0).max(1000).nullable(),
 });
 
 const setupSchema = z.object({

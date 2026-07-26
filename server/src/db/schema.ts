@@ -11,6 +11,11 @@ export type UserSettings = {
   distanceUnit: "mi" | "km";
   timezone: string;
   weekStart: "monday" | "sunday";
+  // Daily nutrition targets; null = not set.
+  calorieTarget: number | null;
+  proteinTarget: number | null;
+  carbsTarget: number | null;
+  fatTarget: number | null;
 };
 
 export const defaultUserSettings: UserSettings = {
@@ -18,6 +23,10 @@ export const defaultUserSettings: UserSettings = {
   distanceUnit: "mi",
   timezone: "UTC",
   weekStart: "monday",
+  calorieTarget: null,
+  proteinTarget: null,
+  carbsTarget: null,
+  fatTarget: null,
 };
 
 export const users = sqliteTable("users", {
@@ -174,3 +183,45 @@ export const sets = sqliteTable("sets", {
 export type WorkoutSession = typeof workoutSessions.$inferSelect;
 export type SessionExercise = typeof sessionExercises.$inferSelect;
 export type WorkoutSet = typeof sets.$inferSelect;
+
+// Per-serving nutrition; entered once, reused via log entries.
+export const foods = sqliteTable("foods", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  name: text("name").notNull(),
+  brand: text("brand"),
+  barcode: text("barcode"),
+  servingSize: real("serving_size").notNull().default(1),
+  servingUnit: text("serving_unit").notNull().default("serving"),
+  calories: real("calories").notNull(),
+  protein: real("protein").notNull().default(0),
+  carbs: real("carbs").notNull().default(0),
+  fat: real("fat").notNull().default(0),
+  fiber: real("fiber"),
+  sugar: real("sugar"),
+  sodium: real("sodium"),
+  isDeleted: integer("is_deleted", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export type Food = typeof foods.$inferSelect;
+
+export const foodLogEntries = sqliteTable("food_log_entries", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  foodId: integer("food_id")
+    .notNull()
+    .references(() => foods.id),
+  // Local date the entry belongs to (YYYY-MM-DD).
+  date: text("date").notNull(),
+  meal: text("meal", { enum: ["breakfast", "lunch", "dinner", "snack"] }).notNull(),
+  servings: real("servings").notNull().default(1),
+});
+
+export type FoodLogEntry = typeof foodLogEntries.$inferSelect;

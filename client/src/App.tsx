@@ -3,6 +3,10 @@ import Layout from "./components/Layout";
 import { useAuthStatus, useMe } from "./lib/auth";
 import CalendarPage from "./pages/CalendarPage";
 import ExerciseDetail from "./pages/ExerciseDetail";
+import FoodForm from "./pages/FoodForm";
+import FoodLayout from "./pages/FoodLayout";
+import FoodLibrary from "./pages/FoodLibrary";
+import FoodLog from "./pages/FoodLog";
 import HistoryList from "./pages/HistoryList";
 import SessionPage from "./pages/SessionPage";
 import ExerciseForm from "./pages/ExerciseForm";
@@ -48,7 +52,13 @@ export default function App() {
           <Route path="history" element={<HistoryList />} />
           <Route path="session/:id" element={<SessionPage />} />
         </Route>
-        <Route path="food" element={<Placeholder title="Food" />} />
+        <Route path="food" element={<FoodLayout />}>
+          <Route index element={<Navigate to="log" replace />} />
+          <Route path="log" element={<FoodLog />} />
+          <Route path="foods" element={<FoodLibrary />} />
+          <Route path="foods/new" element={<FoodForm />} />
+          <Route path="foods/:id/edit" element={<FoodForm />} />
+        </Route>
         <Route path="progress" element={<Placeholder title="Progress" />} />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />

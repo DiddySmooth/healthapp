@@ -12,7 +12,9 @@ export type PublicUser = Omit<User, "passwordHash">;
 
 export function toPublicUser(user: User): PublicUser {
   const { passwordHash: _passwordHash, ...pub } = user;
-  return pub;
+  // Merge defaults so users created before new settings keys existed
+  // still present a complete settings object.
+  return { ...pub, settings: { ...defaultUserSettings, ...pub.settings } };
 }
 
 export function hashPassword(password: string): string {

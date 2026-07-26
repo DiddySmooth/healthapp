@@ -62,6 +62,69 @@ function MySettings({ user }: { user: User }) {
   );
 }
 
+function TargetInput({
+  label,
+  value,
+  onSave,
+}: {
+  label: string;
+  value: number | null;
+  onSave: (v: number | null) => void;
+}) {
+  return (
+    <Field label={label}>
+      <Input
+        type="number"
+        inputMode="numeric"
+        min={0}
+        defaultValue={value ?? ""}
+        key={String(value)}
+        placeholder="not set"
+        onBlur={(e) => {
+          const raw = e.target.value.trim();
+          const next = raw === "" ? null : Number(raw);
+          if (next !== value && (next == null || Number.isFinite(next))) onSave(next);
+        }}
+      />
+    </Field>
+  );
+}
+
+function NutritionTargets({ user }: { user: User }) {
+  const update = useUpdateSettings();
+  const s = user.settings;
+  return (
+    <Card title="Daily nutrition targets">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <TargetInput
+          label="Calories"
+          value={s.calorieTarget}
+          onSave={(v) => update.mutate({ calorieTarget: v })}
+        />
+        <TargetInput
+          label="Protein (g)"
+          value={s.proteinTarget}
+          onSave={(v) => update.mutate({ proteinTarget: v })}
+        />
+        <TargetInput
+          label="Carbs (g)"
+          value={s.carbsTarget}
+          onSave={(v) => update.mutate({ carbsTarget: v })}
+        />
+        <TargetInput
+          label="Fat (g)"
+          value={s.fatTarget}
+          onSave={(v) => update.mutate({ fatTarget: v })}
+        />
+      </div>
+      <p className="mt-2 text-xs text-faint">
+        Leave a field empty to clear the target. Saved when you leave the field.
+      </p>
+      <ErrorText>{update.error?.message}</ErrorText>
+    </Card>
+  );
+}
+
 function AdminUsers() {
   const qc = useQueryClient();
   const usersQuery = useQuery({
@@ -164,6 +227,7 @@ export default function Settings() {
     <div className="flex flex-col gap-6">
       <h1 className="text-2xl font-bold">Settings</h1>
       <MySettings user={user} />
+      <NutritionTargets user={user} />
       {user.role === "admin" && <AdminUsers />}
     </div>
   );
