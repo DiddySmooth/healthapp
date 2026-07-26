@@ -1,12 +1,108 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button, Card } from "../components/ui";
+import { api } from "../lib/api";
 import {
   exerciseImageUrl,
   logTypeLabels,
   useExercise,
   useExerciseMutations,
 } from "../lib/exercises";
+import type { WorkoutSet } from "../lib/sessions";
+
+type PRs = {
+  maxWeight: { weight: number; reps: number; date: string } | null;
+  best1RM: { value: number; weight: number; reps: number; date: string } | null;
+  maxReps: { reps: number; weight: number | null; date: string } | null;
+  maxDurationSec: { durationSec: number; date: string } | null;
+  maxDistance: { distance: number; date: string } | null;
+};
+
+type HistoryEntry = { sessionId: number; date: string; sets: WorkoutSet[] };
+
+function useExerciseStats(exerciseId: number) {
+  return useQuery({
+    queryKey: ["stats", "exercise", exerciseId],
+    queryFn: () =>
+      api.get<{ history: HistoryEntry[]; prs: PRs }>(`/api/stats/exercise/${exerciseId}`),
+    enabled: exerciseId > 0,
+  });
+}
+
+function setLabel(s: WorkoutSet): string {
+  if (s.weight != null && s.weight > 0) return `${s.weight}×${s.reps ?? 0}`;
+  if (s.reps != null && s.reps > 0) return `${s.reps} reps`;
+  const parts: string[] = [];
+  if (s.durationSec != null) parts.push(`${Math.round(s.durationSec / 60)}m`);
+  if (s.distance != null) parts.push(String(s.distance));
+  return parts.join(" · ") || "—";
+}
+
+function StatsSection({ exerciseId }: { exerciseId: number }) {
+  const { data } = useExerciseStats(exerciseId);
+  if (!data || data.history.length === 0) return null;
+  const { prs, history } = data;
+  const prItems: { label: string; value: string }[] = [];
+  if (prs.maxWeight)
+    prItems.push({
+      label: "Heaviest set",
+      value: `${prs.maxWeight.weight}×${prs.maxWeight.reps}`,
+    });
+  if (prs.best1RM) prItems.push({ label: "Best est. 1RM", value: String(prs.best1RM.value) });
+  if (prs.maxReps) prItems.push({ label: "Most reps", value: String(prs.maxReps.reps) });
+  if (prs.maxDurationSec)
+    prItems.push({
+      label: "Longest",
+      value: `${Math.round(prs.maxDurationSec.durationSec / 60)} min`,
+    });
+  if (prs.maxDistance)
+    prItems.push({ label: "Farthest", value: String(prs.maxDistance.distance) });
+
+  return (
+    <>
+      {prItems.length > 0 && (
+        <Card title="Personal records" className="mt-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {prItems.map((pr) => (
+              <div key={pr.label} className="rounded-lg bg-surface-2/50 p-3 text-center">
+                <p className="text-lg font-bold text-accent">{pr.value}</p>
+                <p className="text-xs text-muted">{pr.label}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+      <Card title="Recent history" className="mt-4">
+        <ul className="divide-y divide-border">
+          {history.slice(0, 8).map((h) => (
+            <li key={h.sessionId} className="flex items-baseline gap-3 py-2">
+              <Link
+                to={`/workouts/session/${h.sessionId}`}
+                className="shrink-0 text-sm text-muted hover:text-accent"
+              >
+                {new Date(h.date).toLocaleDateString(undefined, {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </Link>
+              <span className="flex flex-wrap gap-1.5">
+                {h.sets.map((s) => (
+                  <span
+                    key={s.id}
+                    className="rounded bg-surface-2 px-1.5 py-0.5 text-xs text-fg"
+                  >
+                    {setLabel(s)}
+                  </span>
+                ))}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </Card>
+    </>
+  );
+}
 
 function Badge({ children }: { children: React.ReactNode }) {
   return (
@@ -115,7 +211,7 @@ export default function ExerciseDetail() {
         </Card>
       )}
 
-      {/* Personal history and PRs land here in Phase 5. */}
+      <StatsSection exerciseId={ex.id} />
     </div>
   );
 }

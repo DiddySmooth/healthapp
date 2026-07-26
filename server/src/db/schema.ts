@@ -131,3 +131,46 @@ export const schedule = sqliteTable("schedule", {
 });
 
 export type ScheduleEntry = typeof schedule.$inferSelect;
+
+export const workoutSessions = sqliteTable("workout_sessions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  // Kept for provenance; null for freeform sessions or deleted routines.
+  routineId: integer("routine_id"),
+  routineName: text("routine_name"),
+  startedAt: integer("started_at", { mode: "timestamp" }).notNull(),
+  finishedAt: integer("finished_at", { mode: "timestamp" }),
+  notes: text("notes"),
+});
+
+export const sessionExercises = sqliteTable("session_exercises", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  sessionId: integer("session_id")
+    .notNull()
+    .references(() => workoutSessions.id, { onDelete: "cascade" }),
+  exerciseId: integer("exercise_id")
+    .notNull()
+    .references(() => exercises.id),
+  position: integer("position").notNull(),
+  notes: text("notes"),
+});
+
+export const sets = sqliteTable("sets", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  sessionExerciseId: integer("session_exercise_id")
+    .notNull()
+    .references(() => sessionExercises.id, { onDelete: "cascade" }),
+  position: integer("position").notNull(),
+  weight: real("weight"),
+  reps: integer("reps"),
+  durationSec: integer("duration_sec"),
+  distance: real("distance"),
+  isWarmup: integer("is_warmup", { mode: "boolean" }).notNull().default(false),
+  completed: integer("completed", { mode: "boolean" }).notNull().default(false),
+});
+
+export type WorkoutSession = typeof workoutSessions.$inferSelect;
+export type SessionExercise = typeof sessionExercises.$inferSelect;
+export type WorkoutSet = typeof sets.$inferSelect;

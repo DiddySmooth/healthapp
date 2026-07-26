@@ -1,10 +1,33 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button, Card } from "../components/ui";
+import { ApiError } from "../lib/api";
 import { useRoutineMutations, useRoutines, type Routine } from "../lib/routines";
+import { useActiveSession, useSessionMutations } from "../lib/sessions";
 
 function RoutineCard({ routine }: { routine: Routine }) {
   const { duplicate, remove } = useRoutineMutations();
+  const { start } = useSessionMutations();
+  const { data: activeData } = useActiveSession();
   const navigate = useNavigate();
+
+  function startWorkout() {
+    const active = activeData?.session;
+    if (active) {
+      navigate(`/workouts/session/${active.id}`);
+      return;
+    }
+    start.mutate(
+      { routineId: routine.id },
+      {
+        onSuccess: (data) => navigate(`/workouts/session/${data.session.id}`),
+        onError: (e) => {
+          if (e instanceof ApiError && e.code === "ACTIVE_SESSION") {
+            window.alert("A workout is already in progress — resume it first.");
+          }
+        },
+      },
+    );
+  }
 
   function confirmDelete() {
     if (window.confirm(`Delete routine "${routine.name}"? This also removes it from your schedule.`)) {
@@ -29,6 +52,9 @@ function RoutineCard({ routine }: { routine: Routine }) {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button onClick={startWorkout} disabled={start.isPending}>
+            Start
+          </Button>
           <Button variant="ghost" onClick={() => navigate(`/workouts/routines/${routine.id}/edit`)}>
             Edit
           </Button>

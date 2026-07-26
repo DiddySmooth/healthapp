@@ -3,6 +3,8 @@ import Layout from "./components/Layout";
 import { useAuthStatus, useMe } from "./lib/auth";
 import CalendarPage from "./pages/CalendarPage";
 import ExerciseDetail from "./pages/ExerciseDetail";
+import HistoryList from "./pages/HistoryList";
+import SessionPage from "./pages/SessionPage";
 import ExerciseForm from "./pages/ExerciseForm";
 import ExerciseLibrary from "./pages/ExerciseLibrary";
 import Login from "./pages/Login";
@@ -43,6 +45,8 @@ export default function App() {
           <Route path="routines/new" element={<RoutineForm />} />
           <Route path="routines/:id/edit" element={<RoutineForm />} />
           <Route path="calendar" element={<CalendarPage />} />
+          <Route path="history" element={<HistoryList />} />
+          <Route path="session/:id" element={<SessionPage />} />
         </Route>
         <Route path="food" element={<Placeholder title="Food" />} />
         <Route path="progress" element={<Placeholder title="Progress" />} />
