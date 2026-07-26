@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ExercisePicker from "../components/ExercisePicker";
 import { Button, Card, Select } from "../components/ui";
+import { useMe } from "../lib/auth";
 import {
   formatDuration,
   sessionVolume,
@@ -99,6 +100,8 @@ function SetRow({
   mutations: ReturnType<typeof useSessionMutations>;
 }) {
   const t = se.exercise.logType;
+  const { data: me } = useMe();
+  const weightUnit = me?.settings.weightUnit === "kg" ? "kg" : "lb";
   const patch = (p: Partial<WorkoutSet>) =>
     mutations.patchSet.mutate({ seId: se.id, setId: set.id, patch: p });
 
@@ -127,7 +130,7 @@ function SetRow({
             <NumberCell
               value={set.weight}
               step="0.5"
-              placeholder={t === "bodyweight" ? "+lb" : "lb"}
+              placeholder={t === "bodyweight" ? `+${weightUnit}` : weightUnit}
               onCommit={(v) => patch({ weight: v })}
             />
             <span className="text-faint">×</span>

@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t healthapp:ci .
+      - name: Smoke test container
+        run: |
+          docker run -d --name smoke -p 3420:3420 -v smoke-data:/data healthapp:ci
+          for i in $(seq 1 30); do
+            if curl -fs http://localhost:3420/healthz; then ok=1; break; fi
+            sleep 1
+          done
+          [ "$ok" = "1" ] || { docker logs smoke; exit 1; }
+          # First-run setup must succeed against a fresh volume.
+          curl -fs -X POST http://localhost:3420/api/auth/setup \
+            -H 'Content-Type: application/json' \
+            -d '{"username":"ci","password":"cipassword1"}' | grep -q '"ci"'
+          # SPA serves with history fallback.
+          curl -fs http://localhost:3420/workouts | grep -qi '<!doctype html>'
+          docker rm -f smoke

@@ -5,6 +5,7 @@ import { requireAuth } from "../auth/middleware.js";
 import {
   createUser,
   findUserByUsername,
+  hashPassword,
   toPublicUser,
   userCount,
   verifyPassword,
@@ -83,6 +84,21 @@ export function authRoutes(db: Db): Router {
 
   router.get("/me", requireAuth(db), (req, res) => {
     res.json({ user: toPublicUser(req.user!) });
+  });
+
+  router.post("/password", requireAuth(db), (req, res) => {
+    const input = parseBody(
+      z.object({ currentPassword: z.string().min(1), newPassword: passwordSchema }),
+      req.body,
+    );
+    if (!verifyPassword(input.currentPassword, req.user!.passwordHash)) {
+      throw new ApiError(403, "BAD_CREDENTIALS", "Current password is incorrect");
+    }
+    db.update(users)
+      .set({ passwordHash: hashPassword(input.newPassword) })
+      .where(eq(users.id, req.user!.id))
+      .run();
+    res.json({ ok: true });
   });
 
   router.patch("/me/settings", requireAuth(db), (req, res) => {

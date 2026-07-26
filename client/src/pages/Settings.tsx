@@ -130,6 +130,94 @@ function NutritionTargets({ user }: { user: User }) {
   );
 }
 
+function ChangePassword() {
+  const [current, setCurrent] = useState("");
+  const [next, setNext] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [localError, setLocalError] = useState("");
+  const change = useMutation({
+    mutationFn: (input: { currentPassword: string; newPassword: string }) =>
+      api.post<{ ok: boolean }>("/api/auth/password", input),
+  });
+
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    setLocalError("");
+    if (next !== confirm) {
+      setLocalError("New passwords do not match");
+      return;
+    }
+    change.mutate(
+      { currentPassword: current, newPassword: next },
+      {
+        onSuccess: () => {
+          setCurrent("");
+          setNext("");
+          setConfirm("");
+        },
+      },
+    );
+  }
+
+  return (
+    <Card title="Change password">
+      <form onSubmit={submit} className="grid gap-4 sm:grid-cols-3 sm:items-end">
+        <Field label="Current password">
+          <Input
+            type="password"
+            value={current}
+            onChange={(e) => setCurrent(e.target.value)}
+            autoComplete="current-password"
+            required
+          />
+        </Field>
+        <Field label="New password">
+          <Input
+            type="password"
+            value={next}
+            onChange={(e) => setNext(e.target.value)}
+            autoComplete="new-password"
+            required
+            minLength={8}
+          />
+        </Field>
+        <Field label="Confirm new password">
+          <Input
+            type="password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+            autoComplete="new-password"
+            required
+          />
+        </Field>
+        <div className="sm:col-span-3">
+          <ErrorText>{localError || change.error?.message}</ErrorText>
+          {change.isSuccess && !localError && (
+            <p className="text-sm text-success">Password updated.</p>
+          )}
+          <Button type="submit" disabled={change.isPending} className="mt-1">
+            Update password
+          </Button>
+        </div>
+      </form>
+    </Card>
+  );
+}
+
+function AdminBackup() {
+  return (
+    <Card title="Backup">
+      <p className="mb-3 text-sm text-muted">
+        Download a snapshot of the entire database (all users). You can also back up
+        by copying the mounted <code className="text-fg">/data</code> folder.
+      </p>
+      <a href="/api/admin/backup" download>
+        <Button variant="ghost">Download database backup</Button>
+      </a>
+    </Card>
+  );
+}
+
 function AdminUsers() {
   const qc = useQueryClient();
   const usersQuery = useQuery({
@@ -233,7 +321,9 @@ export default function Settings() {
       <h1 className="text-2xl font-bold">Settings</h1>
       <MySettings user={user} />
       <NutritionTargets user={user} />
+      <ChangePassword />
       {user.role === "admin" && <AdminUsers />}
+      {user.role === "admin" && <AdminBackup />}
     </div>
   );
 }

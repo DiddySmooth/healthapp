@@ -10,6 +10,7 @@ import type { Db } from "./db/index.js";
 import { appMeta } from "./db/schema.js";
 import { exerciseDbDir } from "./db/seed.js";
 import { errorHandler } from "./lib/errors.js";
+import { adminRoutes } from "./routes/admin.js";
 import { authRoutes } from "./routes/auth.js";
 import { exerciseRoutes } from "./routes/exercises.js";
 import { foodLogRoutes } from "./routes/foodlog.js";
@@ -76,6 +77,7 @@ export function buildApp(
   app.use("/api/foods", foodRoutes(db));
   app.use("/api/food-log", foodLogRoutes(db));
   app.use("/api/lookup", lookupRoutes(db, options.offFetch));
+  app.use("/api/admin", adminRoutes(db));
   app.use("/api/metrics", metricRoutes(db));
   app.use("/api/water", waterRoutes(db));
 
