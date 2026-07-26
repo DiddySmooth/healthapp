@@ -47,6 +47,7 @@ export type UserSettings = {
   proteinTarget: number | null;
   carbsTarget: number | null;
   fatTarget: number | null;
+  waterTargetMl: number | null;
 };
 
 export type User = {

@@ -2,7 +2,9 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { useAuthStatus, useMe } from "./lib/auth";
 import CalendarPage from "./pages/CalendarPage";
+import Dashboard from "./pages/Dashboard";
 import ExerciseDetail from "./pages/ExerciseDetail";
+import Progress from "./pages/Progress";
 import FoodForm from "./pages/FoodForm";
 import FoodLayout from "./pages/FoodLayout";
 import FoodLibrary from "./pages/FoodLibrary";
@@ -38,7 +40,7 @@ export default function App() {
   return (
     <Routes>
       <Route element={<Layout />}>
-        <Route index element={<Placeholder title="Dashboard" />} />
+        <Route index element={<Dashboard />} />
         <Route path="workouts" element={<WorkoutsLayout />}>
           <Route index element={<Navigate to="exercises" replace />} />
           <Route path="exercises" element={<ExerciseLibrary />} />
@@ -59,7 +61,7 @@ export default function App() {
           <Route path="foods/new" element={<FoodForm />} />
           <Route path="foods/:id/edit" element={<FoodForm />} />
         </Route>
-        <Route path="progress" element={<Placeholder title="Progress" />} />
+        <Route path="progress" element={<Progress />} />
         <Route path="settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>

@@ -116,6 +116,11 @@ function NutritionTargets({ user }: { user: User }) {
           value={s.fatTarget}
           onSave={(v) => update.mutate({ fatTarget: v })}
         />
+        <TargetInput
+          label="Water (ml)"
+          value={s.waterTargetMl}
+          onSave={(v) => update.mutate({ waterTargetMl: v })}
+        />
       </div>
       <p className="mt-2 text-xs text-faint">
         Leave a field empty to clear the target. Saved when you leave the field.

@@ -16,6 +16,7 @@ export type UserSettings = {
   proteinTarget: number | null;
   carbsTarget: number | null;
   fatTarget: number | null;
+  waterTargetMl: number | null;
 };
 
 export const defaultUserSettings: UserSettings = {
@@ -27,6 +28,7 @@ export const defaultUserSettings: UserSettings = {
   proteinTarget: null,
   carbsTarget: null,
   fatTarget: null,
+  waterTargetMl: null,
 };
 
 export const users = sqliteTable("users", {
@@ -225,3 +227,40 @@ export const foodLogEntries = sqliteTable("food_log_entries", {
 });
 
 export type FoodLogEntry = typeof foodLogEntries.$inferSelect;
+
+export const metricTypes = [
+  "weight",
+  "waist",
+  "chest",
+  "hips",
+  "arm",
+  "thigh",
+  "calf",
+  "neck",
+  "bodyfat",
+] as const;
+export type MetricType = (typeof metricTypes)[number];
+
+export const bodyMetrics = sqliteTable("body_metrics", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  date: text("date").notNull(),
+  type: text("type", { enum: metricTypes }).notNull(),
+  // Weight in the user's unit; measurements in in/cm; bodyfat in %.
+  value: real("value").notNull(),
+});
+
+export type BodyMetric = typeof bodyMetrics.$inferSelect;
+
+export const waterLog = sqliteTable("water_log", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id),
+  date: text("date").notNull(),
+  amountMl: integer("amount_ml").notNull(),
+});
+
+export type WaterEntry = typeof waterLog.$inferSelect;

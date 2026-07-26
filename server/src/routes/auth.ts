@@ -29,6 +29,7 @@ export const settingsSchema = z.object({
   proteinTarget: z.number().min(0).max(2000).nullable(),
   carbsTarget: z.number().min(0).max(3000).nullable(),
   fatTarget: z.number().min(0).max(1000).nullable(),
+  waterTargetMl: z.number().min(0).max(20000).nullable(),
 });
 
 const setupSchema = z.object({

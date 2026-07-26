@@ -15,6 +15,7 @@ import { exerciseRoutes } from "./routes/exercises.js";
 import { foodLogRoutes } from "./routes/foodlog.js";
 import { foodRoutes } from "./routes/foods.js";
 import { lookupRoutes, type FetchLike } from "./routes/lookup.js";
+import { metricRoutes, waterRoutes } from "./routes/metrics.js";
 import { routineRoutes } from "./routes/routines.js";
 import { scheduleRoutes } from "./routes/schedule.js";
 import { sessionRoutes } from "./routes/sessions.js";
@@ -75,6 +76,8 @@ export function buildApp(
   app.use("/api/foods", foodRoutes(db));
   app.use("/api/food-log", foodLogRoutes(db));
   app.use("/api/lookup", lookupRoutes(db, options.offFetch));
+  app.use("/api/metrics", metricRoutes(db));
+  app.use("/api/water", waterRoutes(db));
 
   // Bundled exercise images (immutable dataset — cache hard).
   app.use(
