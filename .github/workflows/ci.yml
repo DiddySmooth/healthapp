@@ -37,9 +37,9 @@ jobs:
           # First-run setup must succeed against a fresh volume.
           setup=$(curl -s -X POST http://localhost:3420/api/auth/setup \
             -H 'Content-Type: application/json' \
-            -d '{"username":"ci","password":"cipassword1"}')
+            -d '{"username":"ci-admin","password":"cipassword1"}')
           echo "setup response: $setup"
-          echo "$setup" | grep -q '"username":"ci"'
+          echo "$setup" | grep -q '"username":"ci-admin"'
           # SPA serves with history fallback.
           curl -fs http://localhost:3420/workouts | grep -qi '<!doctype html>'
           docker rm -f smoke
