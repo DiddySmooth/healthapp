@@ -62,6 +62,23 @@ describe("login/logout", () => {
     await agent.get("/api/auth/me").expect(401);
   });
 
+  it("accepts the username regardless of capitalization", async () => {
+    const { app } = testApp();
+    await setupAdmin(app, "Grayson", "password123");
+
+    for (const username of ["Grayson", "grayson", "GRAYSON"]) {
+      await request(app)
+        .post("/api/auth/login")
+        .send({ username, password: "password123" })
+        .expect(200);
+    }
+    // Password stays case-sensitive.
+    await request(app)
+      .post("/api/auth/login")
+      .send({ username: "grayson", password: "PASSWORD123" })
+      .expect(401);
+  });
+
   it("rejects wrong password without leaking which field was wrong", async () => {
     const { app } = testApp();
     await setupAdmin(app);
@@ -104,6 +121,11 @@ describe("user admin", () => {
       .post("/api/users")
       .send({ username: "bob", password: "password123" });
     expect(dup.status).toBe(409);
+    // Case-colliding usernames are duplicates too.
+    const caseDup = await admin
+      .post("/api/users")
+      .send({ username: "BOB", password: "password123" });
+    expect(caseDup.status).toBe(409);
   });
 
   it("non-admin users cannot access user management", async () => {

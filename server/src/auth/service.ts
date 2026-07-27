@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { count, eq } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
 import type { Db } from "../db/index.js";
 import {
   defaultUserSettings,
@@ -29,8 +29,15 @@ export function userCount(db: Db): number {
   return db.select({ n: count() }).from(users).get()?.n ?? 0;
 }
 
+// Case-insensitive: people rarely remember how they capitalized their
+// username at signup. Also used by the duplicate check at creation, so
+// "Grayson" and "grayson" cannot coexist.
 export function findUserByUsername(db: Db, username: string): User | undefined {
-  return db.select().from(users).where(eq(users.username, username)).get();
+  return db
+    .select()
+    .from(users)
+    .where(sql`lower(${users.username}) = lower(${username})`)
+    .get();
 }
 
 export function findUserById(db: Db, id: number): User | undefined {
