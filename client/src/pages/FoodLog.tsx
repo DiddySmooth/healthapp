@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Card, Input } from "../components/ui";
+
+// Lazy: the ZXing decoder is ~150KB and only needed when scanning.
+const BarcodeScanner = lazy(() => import("../components/BarcodeScanner"));
 import { useMe } from "../lib/auth";
 import {
   mealLabels,
@@ -67,6 +70,7 @@ function AddFoodPanel({
 }) {
   const [search, setSearch] = useState("");
   const [barcode, setBarcode] = useState("");
+  const [scanning, setScanning] = useState(false);
   const [servings, setServings] = useState<Record<number, string>>({});
   const [searchedFor, setSearchedFor] = useState("");
   const results = useFoods(search.trim());
@@ -120,11 +124,16 @@ function AddFoodPanel({
     lookup.mutate({ q });
   }
 
-  function searchBarcode() {
-    const code = barcode.trim();
+  function searchBarcode(code = barcode.trim()) {
     if (!code) return;
     setSearchedFor(`barcode:${code}`);
     lookup.mutate({ barcode: code });
+  }
+
+  function onScanned(code: string) {
+    setScanning(false);
+    setBarcode(code);
+    searchBarcode(code);
   }
 
   const lookupFresh =
@@ -201,6 +210,9 @@ function AddFoodPanel({
               : "Type a name above to search"}
         </Button>
         <div className="flex gap-1">
+          <Button variant="ghost" onClick={() => setScanning(true)} title="Scan with camera">
+            📷 Scan
+          </Button>
           <Input
             placeholder="Barcode"
             inputMode="numeric"
@@ -214,12 +226,17 @@ function AddFoodPanel({
           <Button
             variant="ghost"
             disabled={barcode.trim() === "" || lookup.isPending}
-            onClick={searchBarcode}
+            onClick={() => searchBarcode()}
           >
             Go
           </Button>
         </div>
       </div>
+      {scanning && (
+        <Suspense fallback={null}>
+          <BarcodeScanner onDetected={onScanned} onClose={() => setScanning(false)} />
+        </Suspense>
+      )}
       {lookup.error && (
         <p className="mt-1 text-sm text-danger">{lookup.error.message}</p>
       )}

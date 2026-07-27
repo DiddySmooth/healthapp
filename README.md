@@ -86,10 +86,12 @@ restart.
 
 ## Notes for reverse proxies / HTTPS
 
-The app works fine on plain HTTP inside your LAN. If you want phone-camera
-barcode scanning, serve it over HTTPS (browsers only allow camera access in a
-secure context) — any reverse proxy (Caddy, Traefik, nginx) in front works;
-`trust proxy` is already enabled.
+The app works fine on plain HTTP inside your LAN. The one exception is the
+**📷 Scan** button (camera barcode scanning): browsers only allow camera
+access in a secure context, so it needs HTTPS — any reverse proxy (Caddy,
+Traefik, nginx) with a certificate in front works, and `trust proxy` is
+already enabled. On plain HTTP the scan button explains this and you can
+still type barcodes manually.
 
 ## Development
 

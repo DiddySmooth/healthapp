@@ -1,5 +1,7 @@
-import { useState, type FormEvent } from "react";
+import { lazy, Suspense, useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+
+const BarcodeScanner = lazy(() => import("../components/BarcodeScanner"));
 import { Button, Card, ErrorText, Field, Input } from "../components/ui";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
@@ -44,6 +46,7 @@ function LookupPanel({ onPick }: { onPick: (r: LookupResult) => void }) {
   const lookup = useLookup();
   const [q, setQ] = useState("");
   const [barcode, setBarcode] = useState("");
+  const [scanning, setScanning] = useState(false);
 
   return (
     <div className="rounded-lg border border-border p-3">
@@ -63,6 +66,9 @@ function LookupPanel({ onPick }: { onPick: (r: LookupResult) => void }) {
           onChange={(e) => setBarcode(e.target.value)}
           className="w-36"
         />
+        <Button type="button" variant="ghost" onClick={() => setScanning(true)}>
+          📷 Scan
+        </Button>
         <Button
           type="button"
           variant="ghost"
@@ -76,6 +82,18 @@ function LookupPanel({ onPick }: { onPick: (r: LookupResult) => void }) {
           {lookup.isPending ? "Searching…" : "Search"}
         </Button>
       </div>
+      {scanning && (
+        <Suspense fallback={null}>
+          <BarcodeScanner
+            onDetected={(code) => {
+              setScanning(false);
+              setBarcode(code);
+              lookup.mutate({ barcode: code });
+            }}
+            onClose={() => setScanning(false)}
+          />
+        </Suspense>
+      )}
       {lookup.error && <ErrorText>{lookup.error.message}</ErrorText>}
       {lookup.data && (
         <ul className="mt-2 max-h-48 divide-y divide-border overflow-y-auto">
