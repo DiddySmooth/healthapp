@@ -186,7 +186,7 @@ describe("Open Food Facts lookup", () => {
     },
   };
 
-  it("maps barcode lookups", async () => {
+  it("maps barcode lookups on a per-100g basis", async () => {
     const { app } = appWithOff(async () => ({
       ok: true,
       status: 200,
@@ -200,21 +200,70 @@ describe("Open Food Facts lookup", () => {
     const r = res.body.results[0];
     expect(r.name).toBe("Test Yogurt");
     expect(r.brand).toBe("TestBrand");
+    expect(r.servingSize).toBe(100);
+    expect(r.servingUnit).toBe("g");
     expect(r.calories).toBe(59);
     expect(r.sodium).toBe(36); // g → mg
   });
 
-  it("maps name searches and skips nameless products", async () => {
+  it("prefers per-serving nutrition when the product declares it", async () => {
+    const babybel = {
+      code: "3073780969000",
+      product_name: "Mini Babybel",
+      brands: ["Babybel"],
+      serving_quantity: 20,
+      serving_quantity_unit: "g",
+      nutriments: {
+        "energy-kcal_100g": 299,
+        "energy-kcal_serving": 60,
+        proteins_100g: 20.5,
+        proteins_serving: 4.1,
+        fat_100g: 24,
+        fat_serving: 4.8,
+        carbohydrates_100g: 0.5,
+        carbohydrates_serving: 0.1,
+      },
+    };
     const { app } = appWithOff(async () => ({
       ok: true,
       status: 200,
-      json: async () => ({ products: [fakeProduct, { code: "999", nutriments: {} }] }),
+      json: async () => ({ hits: [babybel] }),
+    }));
+    const agent = request.agent(app);
+    await agent.post("/api/auth/setup").send({ username: "admin", password: "password123" });
+
+    const res = await agent.get("/api/lookup/off?q=babybel").expect(200);
+    const r = res.body.results[0];
+    expect(r.servingSize).toBe(20);
+    expect(r.servingUnit).toBe("g");
+    expect(r.calories).toBe(60);
+    expect(r.protein).toBe(4.1);
+    expect(r.brand).toBe("Babybel");
+  });
+
+  it("maps name searches (hits array) and skips nameless products", async () => {
+    const { app } = appWithOff(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ hits: [fakeProduct, { code: "999", nutriments: {} }] }),
     }));
     const agent = request.agent(app);
     await agent.post("/api/auth/setup").send({ username: "admin", password: "password123" });
 
     const res = await agent.get("/api/lookup/off?q=yogurt").expect(200);
     expect(res.body.results).toHaveLength(1);
+  });
+
+  it("sends a User-Agent header to Open Food Facts", async () => {
+    let seenUA = "";
+    const { app } = appWithOff(async (_url, init) => {
+      seenUA = init?.headers?.["User-Agent"] ?? "";
+      return { ok: true, status: 200, json: async () => ({ hits: [] }) };
+    });
+    const agent = request.agent(app);
+    await agent.post("/api/auth/setup").send({ username: "admin", password: "password123" });
+    await agent.get("/api/lookup/off?q=yogurt").expect(200);
+    expect(seenUA).toContain("HealthApp");
   });
 
   it("degrades gracefully when the upstream is down", async () => {

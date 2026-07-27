@@ -89,8 +89,8 @@ function LookupPanel({ onPick }: { onPick: (r: LookupResult) => void }) {
                 <span className="font-medium">{r.name}</span>
                 {r.brand && <span className="text-faint"> — {r.brand}</span>}
                 <span className="block text-xs text-muted">
-                  per 100g: {r.calories ?? "?"} cal · P{r.protein ?? "?"} C{r.carbs ?? "?"} F
-                  {r.fat ?? "?"}
+                  per {r.servingSize} {r.servingUnit}: {r.calories ?? "?"} cal · P
+                  {r.protein ?? "?"} C{r.carbs ?? "?"} F{r.fat ?? "?"}
                 </span>
               </button>
             </li>
@@ -101,8 +101,8 @@ function LookupPanel({ onPick }: { onPick: (r: LookupResult) => void }) {
         </ul>
       )}
       <p className="mt-2 text-xs text-faint">
-        Values import per 100g — adjust serving size after importing. Lookup needs
-        internet; everything else works offline.
+        Values import per serving when the product declares one, otherwise per
+        100g. Lookup needs internet; everything else works offline.
       </p>
     </div>
   );
@@ -164,8 +164,8 @@ export default function FoodForm() {
     setName(r.name);
     if (r.brand) setBrand(r.brand);
     if (r.barcode) setBarcode(r.barcode);
-    setServingSize("100");
-    setServingUnit("g");
+    setServingSize(String(r.servingSize));
+    setServingUnit(r.servingUnit);
     if (r.calories != null) setCalories(String(r.calories));
     if (r.protein != null) setProtein(String(r.protein));
     if (r.carbs != null) setCarbs(String(r.carbs));

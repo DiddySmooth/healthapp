@@ -58,6 +58,9 @@ export type LookupResult = {
   name: string;
   brand: string | null;
   barcode: string | null;
+  // Nutrition basis: one serving of servingSize servingUnit.
+  servingSize: number;
+  servingUnit: string;
   calories: number | null;
   protein: number | null;
   carbs: number | null;

@@ -8,11 +8,14 @@ import {
   shiftDate,
   todayISO,
   useDayLog,
+  useFoodMutations,
   useFoods,
   useLogMutations,
+  useLookup,
   useRecentFoods,
   type Food,
   type LogEntry,
+  type LookupResult,
   type MacroTotals,
   type Meal,
 } from "../lib/foods";
@@ -63,13 +66,17 @@ function AddFoodPanel({
   onDone: () => void;
 }) {
   const [search, setSearch] = useState("");
+  const [barcode, setBarcode] = useState("");
   const [servings, setServings] = useState<Record<number, string>>({});
+  const [searchedFor, setSearchedFor] = useState("");
   const results = useFoods(search.trim());
   const recents = useRecentFoods();
   const { add } = useLogMutations();
+  const { create } = useFoodMutations();
+  const lookup = useLookup();
 
   const list = search.trim() !== "" ? results.data?.foods : recents.data?.foods;
-  const heading = search.trim() !== "" ? "Search results" : "Recent foods";
+  const heading = search.trim() !== "" ? "Your foods" : "Recent foods";
 
   function logFood(food: Food) {
     const n = Number(servings[food.id] ?? "1");
@@ -79,11 +86,56 @@ function AddFoodPanel({
     );
   }
 
+  // One tap: save the database result to My Foods, then log it to this meal.
+  function importAndLog(r: LookupResult) {
+    create.mutate(
+      {
+        name: r.name,
+        brand: r.brand,
+        barcode: r.barcode,
+        servingSize: r.servingSize,
+        servingUnit: r.servingUnit,
+        calories: r.calories ?? 0,
+        protein: r.protein ?? 0,
+        carbs: r.carbs ?? 0,
+        fat: r.fat ?? 0,
+        fiber: r.fiber,
+        sugar: r.sugar,
+        sodium: r.sodium,
+      },
+      {
+        onSuccess: (data) =>
+          add.mutate(
+            { foodId: data.food.id, date, meal, servings: 1 },
+            { onSuccess: onDone },
+          ),
+      },
+    );
+  }
+
+  function searchDatabase() {
+    const q = search.trim();
+    if (!q) return;
+    setSearchedFor(q);
+    lookup.mutate({ q });
+  }
+
+  function searchBarcode() {
+    const code = barcode.trim();
+    if (!code) return;
+    setSearchedFor(`barcode:${code}`);
+    lookup.mutate({ barcode: code });
+  }
+
+  const lookupFresh =
+    lookup.data != null &&
+    (searchedFor === search.trim() || searchedFor === `barcode:${barcode.trim()}`);
+
   return (
     <div className="mt-2 rounded-lg border border-border p-3">
       <div className="flex gap-2">
         <Input
-          placeholder="Search your foods…"
+          placeholder="Search foods…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           autoFocus
@@ -94,10 +146,11 @@ function AddFoodPanel({
           </Button>
         </Link>
       </div>
+
       <p className="mt-2 mb-1 text-xs font-medium uppercase tracking-wide text-faint">
         {heading}
       </p>
-      <ul className="max-h-64 divide-y divide-border overflow-y-auto">
+      <ul className="max-h-48 divide-y divide-border overflow-y-auto">
         {(list ?? []).map((food) => (
           <li key={food.id} className="flex items-center gap-2 py-1.5">
             <div className="min-w-0 flex-1">
@@ -125,11 +178,81 @@ function AddFoodPanel({
         {(list ?? []).length === 0 && (
           <li className="py-2 text-sm text-faint">
             {search.trim() !== ""
-              ? "No foods match — create one with “+ New food”."
+              ? "Nothing in your foods — try the food database below."
               : "Foods you log will appear here for quick re-adding."}
           </li>
         )}
       </ul>
+
+      <p className="mt-3 mb-1 text-xs font-medium uppercase tracking-wide text-faint">
+        Food database (Open Food Facts)
+      </p>
+      <div className="flex flex-wrap gap-2">
+        <Button
+          variant="ghost"
+          className="flex-1 whitespace-nowrap"
+          disabled={search.trim() === "" || lookup.isPending}
+          onClick={searchDatabase}
+        >
+          {lookup.isPending
+            ? "Searching…"
+            : search.trim()
+              ? `Search database for “${search.trim()}”`
+              : "Type a name above to search"}
+        </Button>
+        <div className="flex gap-1">
+          <Input
+            placeholder="Barcode"
+            inputMode="numeric"
+            value={barcode}
+            onChange={(e) => setBarcode(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") searchBarcode();
+            }}
+            className="w-32"
+          />
+          <Button
+            variant="ghost"
+            disabled={barcode.trim() === "" || lookup.isPending}
+            onClick={searchBarcode}
+          >
+            Go
+          </Button>
+        </div>
+      </div>
+      {lookup.error && (
+        <p className="mt-1 text-sm text-danger">{lookup.error.message}</p>
+      )}
+      {lookupFresh && (
+        <ul className="mt-1 max-h-48 divide-y divide-border overflow-y-auto">
+          {lookup.data!.results.map((r, i) => (
+            <li key={i} className="flex items-center gap-2 py-1.5">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm">
+                  {r.name}
+                  {r.brand && <span className="text-faint"> — {r.brand}</span>}
+                </p>
+                <p className="text-xs text-faint">
+                  {r.servingSize} {r.servingUnit} · {r.calories ?? "?"} cal · P
+                  {r.protein ?? "?"} C{r.carbs ?? "?"} F{r.fat ?? "?"}
+                </p>
+              </div>
+              <Button
+                onClick={() => importAndLog(r)}
+                disabled={create.isPending || r.calories == null}
+                className="px-3 py-1"
+              >
+                Add
+              </Button>
+            </li>
+          ))}
+          {lookup.data!.results.length === 0 && (
+            <li className="py-2 text-sm text-faint">
+              No database matches — add it manually with “+ New food”.
+            </li>
+          )}
+        </ul>
+      )}
     </div>
   );
 }
