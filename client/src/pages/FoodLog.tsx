@@ -172,8 +172,8 @@ function AddFoodPanel({
             <input
               type="number"
               inputMode="decimal"
-              min={0.1}
-              step="0.5"
+              min={1}
+              step="1"
               value={servings[food.id] ?? "1"}
               onChange={(e) => setServings({ ...servings, [food.id]: e.target.value })}
               className="w-16 rounded-md border border-border bg-surface px-2 py-1 text-center text-sm"
@@ -288,8 +288,8 @@ function EntryRow({ entry }: { entry: LogEntry }) {
       <input
         type="number"
         inputMode="decimal"
-        min={0.1}
-        step="0.5"
+        min={1}
+        step="1"
         defaultValue={entry.servings}
         key={`${entry.id}-${entry.servings}`}
         onBlur={(e) => {
