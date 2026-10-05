@@ -1,6 +1,8 @@
 # HealthApp Redesign Plan
 
 **Date:** 2026-10-05 · **Produced by:** three parallel design-audit agents (visual system, UX/layout, data & signature moments), synthesized.
+
+> **Roadmap context:** the app ships today as a responsive web app (phone browser + desktop) and will **eventually be ported to a native mobile app**. This redesign is designed with that port in mind: the bottom tab bar, sheet-based pickers, 44px touch targets, and toast/dialog layer mirror native mobile patterns 1:1; the token system (colors/type/spacing as named design tokens) and self-contained components translate directly to React Native or Capacitor later. Decisions that would fight a native port (hover-dependent UI, desktop-first layouts) are avoided throughout.
 **Verdict in one line:** the app is functionally complete but wears the stock Tailwind dark theme, websites-on-a-phone navigation, and developer-placeholder interactions — all three are fixable without new heavy dependencies.
 
 ---
