@@ -18,8 +18,9 @@ import {
 } from "../lib/metrics";
 import type { WorkoutSet } from "../lib/sessions";
 
-const ACCENT = "#22d3ee";
-const ACCENT2 = "#a78bfa";
+import { chartColors } from "../components/charts";
+
+const { volt: VOLT, food: FOOD, water: WATER, body: BODY } = chartColors;
 
 function WeightChart() {
   const { data } = useMetrics("weight");
@@ -35,7 +36,7 @@ function WeightChart() {
     >
       <TrendLines
         data={points}
-        series={[{ dataKey: "weight", color: ACCENT, name: "Weight" }]}
+        series={[{ dataKey: "weight", color: BODY, name: "Weight" }]}
         unit={user?.settings.weightUnit ?? "lbs"}
       />
     </ChartCard>
@@ -52,7 +53,7 @@ function CaloriesChart() {
       <DailyBars
         data={days}
         dataKey="calories"
-        color={ACCENT}
+        color={FOOD}
         target={user?.settings.calorieTarget}
         unit="cal"
       />
@@ -131,18 +132,18 @@ function StrengthChart() {
             <TrendLines
               data={points}
               series={[
-                { dataKey: "top", color: ACCENT, name: "Top set" },
-                { dataKey: "oneRm", color: ACCENT2, name: "Est. 1RM" },
+                { dataKey: "top", color: VOLT, name: "Top set" },
+                { dataKey: "oneRm", color: BODY, name: "Est. 1RM" },
               ]}
             />
           </div>
           <div className="mt-2 flex justify-center gap-4 text-xs text-muted">
             <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full" style={{ background: ACCENT }} />
+              <span className="h-2 w-2 rounded-full" style={{ background: VOLT }} />
               Top set
             </span>
             <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full" style={{ background: ACCENT2 }} />
+              <span className="h-2 w-2 rounded-full" style={{ background: BODY }} />
               Est. 1RM
             </span>
           </div>
@@ -162,7 +163,7 @@ function VolumeChart() {
       subtitle="Completed working volume (weight × reps) per week"
       empty={!any}
     >
-      <DailyBars data={weeks} dataKey="total" color={ACCENT2} />
+      <DailyBars data={weeks} dataKey="total" color={VOLT} />
     </ChartCard>
   );
 }
@@ -177,7 +178,7 @@ function WaterChart() {
       <DailyBars
         data={days}
         dataKey="totalMl"
-        color={ACCENT}
+        color={WATER}
         target={user?.settings.waterTargetMl}
         unit="ml"
       />

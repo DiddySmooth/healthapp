@@ -79,7 +79,7 @@ function NumberCell({
         const next = n != null && Number.isFinite(n) ? n : null;
         if (next !== value) onCommit(next);
       }}
-      className="w-16 rounded-md border border-border bg-surface px-2 py-1.5 text-center text-sm text-fg focus:border-accent focus:outline-none"
+      className="h-11 w-[72px] rounded-[10px] border border-border bg-raised px-2 text-center font-mono text-[17px] font-semibold tabular-nums text-fg focus:border-accent focus:outline-none"
     />
   );
 }
@@ -108,7 +108,7 @@ function SetRow({
   return (
     <div
       className={`flex items-center gap-2 rounded-lg px-2 py-1.5 ${
-        set.completed ? "bg-success/5" : ""
+        set.completed ? "bg-accent/[0.06]" : ""
       }`}
     >
       <button
@@ -165,10 +165,10 @@ function SetRow({
         }}
         disabled={!editable}
         aria-label={set.completed ? "Mark incomplete" : "Mark complete"}
-        className={`h-7 w-7 shrink-0 rounded-md border text-sm font-bold transition-colors ${
+        className={`h-11 w-11 shrink-0 rounded-[10px] border text-base font-bold transition-colors ${
           set.completed
-            ? "border-success bg-success/20 text-success"
-            : "border-border text-faint hover:border-success hover:text-success"
+            ? "border-accent bg-accent text-bg"
+            : "border-border-strong text-faint hover:border-accent hover:text-accent"
         }`}
       >
         ✓
@@ -258,7 +258,7 @@ export default function SessionPage() {
           {session.routineName ?? "Freeform workout"}
         </h1>
         {active ? (
-          <span className="ml-auto font-mono text-lg text-accent">
+          <span className="ml-auto font-mono text-3xl font-bold tabular-nums text-accent">
             {formatDuration(session.startedAt, null)}
           </span>
         ) : (
@@ -388,7 +388,7 @@ export default function SessionPage() {
           <div className="mx-auto flex max-w-2xl items-center gap-3">
             {restLeft != null ? (
               <>
-                <span className="font-mono text-xl text-accent-3">{restLeft}s</span>
+                <span className="font-mono text-4xl font-bold tabular-nums text-food">{restLeft}s</span>
                 <span className="text-sm text-muted">rest</span>
                 <Button variant="ghost" className="ml-auto" onClick={() => setRestLeft(null)}>
                   Skip

@@ -14,9 +14,9 @@ function useWorkoutDays() {
 
 // Sequential single-hue scale on the theme accent: none → light → full.
 function cellColor(count: number): string {
-  if (count <= 0) return "#33415566";
-  if (count === 1) return "#22d3ee99";
-  return "#22d3ee";
+  if (count <= 0) return "#1C1E22";
+  if (count === 1) return "#C8F04B99";
+  return "#C8F04B";
 }
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];

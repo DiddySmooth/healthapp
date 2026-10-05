@@ -41,10 +41,10 @@ function CaloriesCard() {
 
   return (
     <Link to="/food/log">
-      <Card className="h-full transition-colors hover:bg-surface-2/60">
+      <Card accent="food" className="h-full transition-colors hover:bg-raised/60">
         <p className="text-xs font-medium uppercase tracking-wide text-muted">Today's food</p>
         <div className="mt-1 flex items-baseline gap-2">
-          <span className="text-2xl font-bold">{Math.round(totals.calories)}</span>
+          <span className="font-mono text-4xl font-bold tabular-nums">{Math.round(totals.calories)}</span>
           <span className="text-sm text-muted">
             {s?.calorieTarget ? `/ ${s.calorieTarget} cal` : "cal"}
           </span>
@@ -57,7 +57,7 @@ function CaloriesCard() {
           )}
         </div>
         <div className="mt-3 flex flex-col gap-2">
-          <Bar value={totals.calories} target={s?.calorieTarget ?? null} color="bg-accent" />
+          <Bar value={totals.calories} target={s?.calorieTarget ?? null} color="bg-food" />
           <div className="grid grid-cols-3 gap-2 text-xs text-muted">
             <span>P {Math.round(totals.protein)}{s?.proteinTarget ? `/${s.proteinTarget}` : ""}g</span>
             <span>C {Math.round(totals.carbs)}{s?.carbsTarget ? `/${s.carbsTarget}` : ""}g</span>
@@ -100,7 +100,7 @@ function WorkoutCard() {
   }
 
   return (
-    <Card className="h-full">
+    <Card accent="workout" className="h-full">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">Today's workout</p>
       {active ? (
         <button
@@ -161,14 +161,14 @@ function WaterCard() {
   const lastEntry = data?.entries[data.entries.length - 1];
 
   return (
-    <Card className="h-full">
+    <Card accent="water" className="h-full">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">Water</p>
       <div className="mt-1 flex items-baseline gap-2">
-        <span className="text-2xl font-bold">{(total / 1000).toFixed(2)}</span>
+        <span className="font-mono text-4xl font-bold tabular-nums">{(total / 1000).toFixed(2)}</span>
         <span className="text-sm text-muted">{target ? `/ ${(target / 1000).toFixed(1)} L` : "L"}</span>
       </div>
       <div className="mt-3">
-        <Bar value={total} target={target} color="bg-accent" />
+        <Bar value={total} target={target} color="bg-water" />
       </div>
       <div className="mt-3 flex flex-wrap gap-2">
         {WATER_QUICK.map((ml) => (
@@ -206,11 +206,11 @@ function WeightCard() {
   const unit = user?.settings.weightUnit ?? "lbs";
 
   return (
-    <Card className="h-full">
+    <Card accent="body" className="h-full">
       <p className="text-xs font-medium uppercase tracking-wide text-muted">Body weight</p>
       <div className="mt-1 flex items-center gap-3">
         <div>
-          <span className="text-2xl font-bold">{latest ? latest.value : "—"}</span>
+          <span className="font-mono text-4xl font-bold tabular-nums">{latest ? latest.value : "—"}</span>
           <span className="ml-1 text-sm text-muted">{unit}</span>
           {latest && (
             <p className="text-xs text-faint">
@@ -223,7 +223,7 @@ function WeightCard() {
         </div>
         {spark.length > 1 && (
           <div className="h-10 flex-1">
-            <Sparkline data={spark} dataKey="v" color="#22d3ee" />
+            <Sparkline data={spark} dataKey="v" color="#C792EA" />
           </div>
         )}
       </div>

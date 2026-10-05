@@ -301,7 +301,7 @@ function EntryRow({ entry }: { entry: LogEntry }) {
         className="w-14 rounded-md border border-border bg-surface px-1 py-0.5 text-center text-xs"
         aria-label="Servings"
       />
-      <span className="w-14 text-right text-sm">{Math.round(entry.macros.calories)}</span>
+      <span className="w-14 text-right font-mono text-sm tabular-nums">{Math.round(entry.macros.calories)}</span>
       <button
         onClick={() => remove.mutate(entry.id)}
         className="text-faint hover:text-danger"
@@ -357,7 +357,7 @@ export default function FoodLog() {
 
       <Card>
         <div className="mb-3 flex items-baseline gap-2">
-          <span className="text-2xl font-bold">{Math.round(totals.calories)}</span>
+          <span className="font-mono text-4xl font-bold tabular-nums">{Math.round(totals.calories)}</span>
           <span className="text-sm text-muted">
             {s?.calorieTarget != null && s.calorieTarget > 0
               ? `/ ${s.calorieTarget} cal`
@@ -378,26 +378,26 @@ export default function FoodLog() {
             label="Calories"
             value={totals.calories}
             target={s?.calorieTarget ?? null}
-            color="bg-accent"
+            color="bg-food"
             unit=""
           />
           <MacroBar
             label="Protein"
             value={totals.protein}
             target={s?.proteinTarget ?? null}
-            color="bg-accent"
+            color="bg-food"
           />
           <MacroBar
             label="Carbs"
             value={totals.carbs}
             target={s?.carbsTarget ?? null}
-            color="bg-accent-2"
+            color="bg-carbs"
           />
           <MacroBar
             label="Fat"
             value={totals.fat}
             target={s?.fatTarget ?? null}
-            color="bg-accent-3"
+            color="bg-fat"
           />
         </div>
         {(s?.calorieTarget ?? null) == null && (

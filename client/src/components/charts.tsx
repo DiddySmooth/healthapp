@@ -15,20 +15,34 @@ import { Card } from "./ui";
 
 // Shared theme bits: recessive grid/axes, text in ink colors (never series color).
 export const chartTheme = {
-  grid: { stroke: "#334155", strokeDasharray: "3 3", vertical: false as const },
-  axisTick: { fill: "#64748b", fontSize: 11 },
-  axisLine: { stroke: "#334155" },
+  grid: { stroke: "#26282E", strokeDasharray: "3 3", vertical: false as const },
+  axisTick: {
+    fill: "#5C6069",
+    fontSize: 11,
+    fontFamily: "'JetBrains Mono Variable', monospace",
+  },
+  axisLine: { stroke: "#26282E" },
   tooltip: {
     contentStyle: {
-      backgroundColor: "#0f172a",
-      border: "1px solid #334155",
-      borderRadius: 8,
+      backgroundColor: "#141518",
+      border: "1px solid #26282E",
+      borderRadius: 10,
       fontSize: 12,
-      color: "#f1f5f9",
+      color: "#F4F4F2",
+      fontFamily: "'JetBrains Mono Variable', monospace",
     },
-    labelStyle: { color: "#94a3b8" },
-    cursor: { fill: "#33415533" },
+    labelStyle: { color: "#9BA0AA" },
+    cursor: { fill: "#1C1E2255" },
   },
+};
+
+// Domain palette (see docs/redesign/PLAN.md): workout=volt, food=amber,
+// water=sky, body=violet.
+export const chartColors = {
+  volt: "#C8F04B",
+  food: "#F5A623",
+  water: "#4CC3F7",
+  body: "#C792EA",
 };
 
 export function ChartCard({
@@ -101,11 +115,11 @@ export function DailyBars({
         {target != null && target > 0 && (
           <ReferenceLine
             y={target}
-            stroke="#94a3b8"
+            stroke="#9BA0AA"
             strokeDasharray="4 4"
             label={{
               value: `target ${target.toLocaleString()}`,
-              fill: "#94a3b8",
+              fill: "#9BA0AA",
               fontSize: 10,
               position: "insideTopRight",
             }}

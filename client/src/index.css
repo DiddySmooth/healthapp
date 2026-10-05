@@ -1,23 +1,43 @@
 @import "tailwindcss";
+@import "@fontsource-variable/archivo";
+@import "@fontsource-variable/jetbrains-mono";
 
+/* "Night Gym Instrument" theme — see docs/redesign/PLAN.md.
+   Graphite ground, hairline borders, volt accent rationed to workout/brand,
+   domain-locked hues: food=amber, water=sky, body=violet. */
 @theme {
-  /* Dark slate surfaces */
-  --color-bg: #0f172a;
-  --color-surface: #1e293b;
-  --color-surface-2: #334155;
-  --color-border: #334155;
+  --font-sans: "Archivo Variable", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
 
-  /* Text */
-  --color-fg: #f1f5f9;
-  --color-muted: #94a3b8;
-  --color-faint: #64748b;
+  /* Ground */
+  --color-bg: #0b0c0e;
+  --color-surface: #141518;
+  --color-surface-2: #1c1e22; /* raised: inputs, chips, hovers */
+  --color-raised: #1c1e22;
+  --color-border: #26282e;
+  --color-border-strong: #3a3d45;
 
-  /* Neon accents */
-  --color-accent: #22d3ee;
-  --color-accent-2: #a78bfa;
-  --color-accent-3: #fbbf24;
-  --color-success: #34d399;
-  --color-danger: #f87171;
+  /* Ink */
+  --color-fg: #f4f4f2;
+  --color-muted: #9ba0aa;
+  --color-faint: #5c6069;
+
+  /* Brand + domains (accent == volt == workout) */
+  --color-accent: #c8f04b;
+  --color-volt: #c8f04b;
+  --color-food: #f5a623;
+  --color-water: #4cc3f7;
+  --color-body: #c792ea;
+  --color-carbs: #e8c170;
+  --color-fat: #b07d3c;
+
+  /* Legacy aliases kept so existing accent-2/-3 usage lands on-theme */
+  --color-accent-2: #c792ea;
+  --color-accent-3: #f5a623;
+
+  /* Status — completing work IS the brand moment */
+  --color-success: #c8f04b;
+  --color-danger: #f26d6d;
 }
 
 html {
@@ -25,5 +45,5 @@ html {
 }
 
 body {
-  @apply bg-bg text-fg antialiased;
+  @apply bg-bg font-sans text-fg antialiased;
 }
