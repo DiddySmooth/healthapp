@@ -5,7 +5,7 @@ import { requireAuth } from "../auth/middleware.js";
 import type { Db } from "../db/index.js";
 import { foodLogEntries, foods, type Food } from "../db/schema.js";
 import { ApiError, parseBody } from "../lib/errors.js";
-import { nameSearch } from "../lib/search.js";
+import { wordSearch } from "../lib/search.js";
 
 const foodSchema = z.object({
   name: z.string().min(1).max(150),
@@ -40,7 +40,7 @@ export function foodRoutes(db: Db): Router {
     const search = String(req.query.search ?? "").trim();
     const filters = [eq(foods.userId, req.user!.id), eq(foods.isDeleted, false)];
     if (search) {
-      const cond = nameSearch(foods.name, search);
+      const cond = wordSearch([foods.name, foods.brand], search);
       if (cond) filters.push(cond);
     }
     const list = db

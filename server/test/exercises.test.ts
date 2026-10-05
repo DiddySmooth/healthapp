@@ -72,6 +72,35 @@ describe("exercise library", () => {
     expect(none.body.total).toBe(0);
   });
 
+  it("matches search words against equipment and muscles, not just names", async () => {
+    const { app } = seededApp();
+    const admin = await setupAdmin(app);
+
+    // "cable pulldowns": most lat pulldowns don't have "cable" in the NAME,
+    // but their equipment is cable — they must all show up.
+    const pulldowns = await admin
+      .get("/api/exercises?search=cable+pulldowns&pageSize=100")
+      .expect(200);
+    const names = pulldowns.body.exercises.map((e: { name: string }) => e.name);
+    expect(names).toContain("Wide-Grip Lat Pulldown");
+    expect(names).toContain("V-Bar Pulldown");
+    expect(names).toContain("Underhand Cable Pulldowns");
+    expect(pulldowns.body.total).toBeGreaterThanOrEqual(8);
+
+    // Overhead cable triceps extension, findable in natural word order.
+    const triceps = await admin
+      .get("/api/exercises?search=overhead+tricep+extension+cable&pageSize=100")
+      .expect(200);
+    const tNames = triceps.body.exercises.map((e: { name: string }) => e.name);
+    expect(tNames).toContain("Cable Rope Overhead Triceps Extension");
+
+    // Muscle words work too.
+    const chest = await admin
+      .get("/api/exercises?search=chest+dumbbell+press&pageSize=100")
+      .expect(200);
+    expect(chest.body.total).toBeGreaterThan(0);
+  });
+
   it("serves filter metadata", async () => {
     const { app } = seededApp();
     const admin = await setupAdmin(app);
