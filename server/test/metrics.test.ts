@@ -108,6 +108,27 @@ describe("chart data", () => {
     expect(res.body.days[0].calories).toBe(0);
   });
 
+  it("returns padded workout-day counts for the heatmap", async () => {
+    const { app } = testApp();
+    const admin = await setupAdmin(app);
+
+    // No workouts yet: fully padded zeros.
+    const empty = await admin.get("/api/stats/workout-days?days=30").expect(200);
+    expect(empty.body.days.length).toBeGreaterThanOrEqual(29);
+    expect(empty.body.days.every((d: { count: number }) => d.count === 0)).toBe(true);
+
+    // A finished session today shows as count 1 on the last day; an
+    // unfinished one doesn't count.
+    const s1 = (await admin.post("/api/sessions").send({})).body.session;
+    await admin.patch(`/api/sessions/${s1.id}`).send({ finished: true }).expect(200);
+    await admin.post("/api/sessions").send({}).expect(201); // still active
+
+    const res = await admin.get("/api/stats/workout-days?days=30").expect(200);
+    const days = res.body.days;
+    expect(days[days.length - 1].count).toBe(1);
+    expect(days.reduce((s: number, d: { count: number }) => s + d.count, 0)).toBe(1);
+  });
+
   it("returns weekly volume buckets", async () => {
     const { app } = testApp();
     const admin = await setupAdmin(app);

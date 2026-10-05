@@ -1,8 +1,8 @@
 import { Router } from "express";
-import { eq } from "drizzle-orm";
+import { and, eq, isNotNull } from "drizzle-orm";
 import { requireAuth } from "../auth/middleware.js";
 import type { Db } from "../db/index.js";
-import { foodLogEntries, foods } from "../db/schema.js";
+import { foodLogEntries, foods, workoutSessions } from "../db/schema.js";
 import { exerciseHistory, exercisePRs, volumeByMuscle } from "../lib/stats.js";
 
 export function statsRoutes(db: Db): Router {
@@ -15,6 +15,44 @@ export function statsRoutes(db: Db): Router {
       history: exerciseHistory(db, req.user!.id, exerciseId),
       prs: exercisePRs(db, req.user!.id, exerciseId),
     });
+  });
+
+  // Finished workouts per calendar day (in the user's timezone) for the
+  // last N days — feeds the contribution-style heatmap.
+  router.get("/workout-days", (req, res) => {
+    const days = Math.min(730, Math.max(1, Number(req.query.days ?? 365)));
+    let fmt: Intl.DateTimeFormat;
+    try {
+      fmt = new Intl.DateTimeFormat("sv", {
+        timeZone: req.user!.settings.timezone || "UTC",
+      });
+    } catch {
+      fmt = new Intl.DateTimeFormat("sv", { timeZone: "UTC" });
+    }
+    const rows = db
+      .select({ startedAt: workoutSessions.startedAt })
+      .from(workoutSessions)
+      .where(
+        and(
+          eq(workoutSessions.userId, req.user!.id),
+          isNotNull(workoutSessions.finishedAt),
+        ),
+      )
+      .all();
+    const counts = new Map<string, number>();
+    for (const row of rows) {
+      const date = fmt.format(row.startedAt);
+      counts.set(date, (counts.get(date) ?? 0) + 1);
+    }
+    const result: { date: string; count: number }[] = [];
+    const now = Date.now();
+    for (let i = days - 1; i >= 0; i--) {
+      const date = fmt.format(new Date(now - i * 86_400_000));
+      // DST shifts can repeat a local date when stepping in UTC days.
+      if (result[result.length - 1]?.date === date) continue;
+      result.push({ date, count: counts.get(date) ?? 0 });
+    }
+    res.json({ days: result });
   });
 
   // Daily calorie totals for the last N days.

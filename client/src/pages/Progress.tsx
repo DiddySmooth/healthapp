@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { ChartCard, DailyBars, TrendLines, shortDate } from "../components/charts";
+import WorkoutHeatmap from "../components/WorkoutHeatmap";
 import { Button, Card, Field, Input, Select } from "../components/ui";
 import { api } from "../lib/api";
 import { useMe } from "../lib/auth";
@@ -268,6 +269,7 @@ export default function Progress() {
     <div className="flex flex-col gap-4">
       <h1 className="text-2xl font-bold">Progress</h1>
       <div className="grid gap-4 lg:grid-cols-2">
+        <WorkoutHeatmap />
         <WeightChart />
         <CaloriesChart />
         <StrengthChart />
