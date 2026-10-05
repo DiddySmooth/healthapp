@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { and, asc, count, eq, isNull, like, or, sql } from "drizzle-orm";
+import { and, asc, count, eq, isNull, or, sql } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../auth/middleware.js";
 import type { Db } from "../db/index.js";
 import { exercises } from "../db/schema.js";
 import { ApiError, parseBody } from "../lib/errors.js";
+import { nameSearch } from "../lib/search.js";
 
 const logTypeEnum = z.enum(["strength", "bodyweight", "cardio", "duration"]);
 
@@ -40,7 +41,10 @@ export function exerciseRoutes(db: Db): Router {
   router.get("/", (req, res) => {
     const q = parseBody(listQuery, req.query);
     const filters = [visibleTo(req.user!.id)];
-    if (q.search) filters.push(like(exercises.name, `%${q.search}%`));
+    if (q.search) {
+      const cond = nameSearch(exercises.name, q.search);
+      if (cond) filters.push(cond);
+    }
     if (q.equipment) filters.push(eq(exercises.equipment, q.equipment));
     if (q.logType) filters.push(eq(exercises.logType, q.logType));
     if (q.muscle) {

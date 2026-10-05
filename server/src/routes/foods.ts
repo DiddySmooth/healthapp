@@ -1,10 +1,11 @@
 import { Router } from "express";
-import { and, desc, eq, inArray, like } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { requireAuth } from "../auth/middleware.js";
 import type { Db } from "../db/index.js";
 import { foodLogEntries, foods, type Food } from "../db/schema.js";
 import { ApiError, parseBody } from "../lib/errors.js";
+import { nameSearch } from "../lib/search.js";
 
 const foodSchema = z.object({
   name: z.string().min(1).max(150),
@@ -38,7 +39,10 @@ export function foodRoutes(db: Db): Router {
   router.get("/", (req, res) => {
     const search = String(req.query.search ?? "").trim();
     const filters = [eq(foods.userId, req.user!.id), eq(foods.isDeleted, false)];
-    if (search) filters.push(like(foods.name, `%${search}%`));
+    if (search) {
+      const cond = nameSearch(foods.name, search);
+      if (cond) filters.push(cond);
+    }
     const list = db
       .select()
       .from(foods)

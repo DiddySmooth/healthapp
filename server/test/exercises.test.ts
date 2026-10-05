@@ -54,6 +54,24 @@ describe("exercise library", () => {
     }
   });
 
+  it("matches search words in any order with loose plurals", async () => {
+    const { app } = seededApp();
+    const admin = await setupAdmin(app);
+
+    // "Cable Rear Delt Fly" must be findable without knowing the exact name.
+    for (const query of ["cable fly", "fly cable", "cable flys", "rear delt cable"]) {
+      const res = await admin
+        .get(`/api/exercises?search=${encodeURIComponent(query)}&pageSize=100`)
+        .expect(200);
+      const names = res.body.exercises.map((e: { name: string }) => e.name);
+      expect(names, `query: ${query}`).toContain("Cable Rear Delt Fly");
+    }
+
+    // Every word must match — nonsense words exclude everything.
+    const none = await admin.get("/api/exercises?search=cable+zzzz").expect(200);
+    expect(none.body.total).toBe(0);
+  });
+
   it("serves filter metadata", async () => {
     const { app } = seededApp();
     const admin = await setupAdmin(app);
