@@ -246,15 +246,29 @@ export function sessionRoutes(db: Db): Router {
         .where(eq(routineExercises.routineId, routine.id))
         .orderBy(asc(routineExercises.position))
         .all();
-      seed = items.map((item) => ({
-        exerciseId: item.exerciseId,
-        sets: Array.from({ length: item.targetSets ?? 1 }, () => ({
-          weight: item.targetWeight,
-          reps: item.targetReps,
-          durationSec: item.targetDurationSec,
-          distance: item.targetDistance,
-        })),
-      }));
+      // Prefill from the last recorded workout so weights carry forward and
+      // the lifter only bumps them; routine targets are the first-time fallback.
+      const previous = previousSets(
+        req.user!.id,
+        items.map((i) => i.exerciseId),
+        -1,
+      );
+      seed = items.map((item) => {
+        const prev = (previous[item.exerciseId] ?? []).filter((s) => !s.isWarmup);
+        return {
+          exerciseId: item.exerciseId,
+          sets: Array.from({ length: item.targetSets ?? 1 }, (_, i) => ({
+            weight: prev[i]?.weight ?? prev[prev.length - 1]?.weight ?? item.targetWeight,
+            reps: prev[i]?.reps ?? prev[prev.length - 1]?.reps ?? item.targetReps,
+            durationSec:
+              prev[i]?.durationSec ??
+              prev[prev.length - 1]?.durationSec ??
+              item.targetDurationSec,
+            distance:
+              prev[i]?.distance ?? prev[prev.length - 1]?.distance ?? item.targetDistance,
+          })),
+        };
+      });
     }
 
     const session = db.transaction((tx) => {

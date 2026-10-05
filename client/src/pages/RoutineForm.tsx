@@ -102,7 +102,7 @@ function RowEditor({
         )}
         {t === "strength" && (
           <TargetInput
-            label="Weight"
+            label="Start wt."
             step="0.5"
             value={row.targetWeight}
             onChange={(v) => onChange({ ...row, targetWeight: v })}

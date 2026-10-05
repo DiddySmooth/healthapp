@@ -124,6 +124,41 @@ describe("session lifecycle", () => {
     expect(detail.body.session.exercises[0].sets).toHaveLength(1);
   });
 
+  it("prefills a new session with the last recorded weights, not routine targets", async () => {
+    const { app } = seededApp();
+    const admin = await setupAdmin(app);
+    const { routineId } = await makeRoutine(admin); // targets: 3×8 @ 100
+
+    // First workout: bump the weights above target and finish.
+    const first = (await admin.post("/api/sessions").send({ routineId })).body.session;
+    const se = first.exercises[0];
+    await admin
+      .patch(`/api/sessions/${first.id}/exercises/${se.id}/sets/${se.sets[0].id}`)
+      .send({ weight: 500, reps: 1, completed: true, isWarmup: true })
+      .expect(200);
+    await admin
+      .patch(`/api/sessions/${first.id}/exercises/${se.id}/sets/${se.sets[1].id}`)
+      .send({ weight: 110, reps: 6, completed: true })
+      .expect(200);
+    await admin
+      .patch(`/api/sessions/${first.id}/exercises/${se.id}/sets/${se.sets[2].id}`)
+      .send({ weight: 115, reps: 5, completed: true })
+      .expect(200);
+    await admin.patch(`/api/sessions/${first.id}`).send({ finished: true }).expect(200);
+
+    // Second workout: inputs carry last time's working weights; the warmup
+    // set is ignored, and the third target set inherits the last working set.
+    const second = (await admin.post("/api/sessions").send({ routineId })).body.session;
+    const sets2 = second.exercises[0].sets;
+    expect(sets2).toHaveLength(3);
+    expect(sets2[0].weight).toBe(110);
+    expect(sets2[0].reps).toBe(6);
+    expect(sets2[1].weight).toBe(115);
+    expect(sets2[2].weight).toBe(115); // inherited from last working set
+    // Exercise with no history still uses its routine targets.
+    expect(second.exercises[1].sets[0].reps).toBe(12);
+  });
+
   it("shows previous session numbers for the same exercise", async () => {
     const { app } = seededApp();
     const admin = await setupAdmin(app);
