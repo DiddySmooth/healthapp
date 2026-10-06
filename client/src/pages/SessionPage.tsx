@@ -38,6 +38,71 @@ function useTicker(active: boolean) {
   }, [active]);
 }
 
+// Tap the "rest Ns" chip on an exercise card to change its rest mid-workout.
+function RestEditor({
+  se,
+  mutations,
+}: {
+  se: SessionExercise;
+  mutations: ReturnType<typeof useSessionMutations>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState("");
+  const committed = useRef(false);
+  const current = se.restSeconds ?? 90;
+
+  function commit(value = text) {
+    if (committed.current) return;
+    committed.current = true;
+    setEditing(false);
+    const n = Number(value);
+    if (Number.isInteger(n) && n >= 5 && n <= 900 && n !== current) {
+      mutations.patchExercise.mutate({ seId: se.id, restSeconds: n });
+    }
+  }
+
+  if (!editing) {
+    return (
+      <button
+        onClick={() => {
+          setText(String(current));
+          committed.current = false;
+          setEditing(true);
+        }}
+        title="Tap to change rest for this exercise"
+        className="rounded-full bg-raised px-2 py-0.5 text-xs text-faint transition-colors hover:text-food"
+      >
+        rest {current}s
+      </button>
+    );
+  }
+  return (
+    <span className="flex items-center gap-1 text-xs text-faint">
+      rest
+      <input
+        autoFocus
+        type="number"
+        inputMode="numeric"
+        min={5}
+        max={900}
+        step={5}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={() => commit()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") commit((e.target as HTMLInputElement).value);
+          if (e.key === "Escape") {
+            committed.current = true;
+            setEditing(false);
+          }
+        }}
+        className="h-8 w-16 rounded-md border border-border bg-raised px-1 text-center font-mono text-sm tabular-nums text-fg focus:border-food focus:outline-none"
+      />
+      s
+    </span>
+  );
+}
+
 function prevHint(set: WorkoutSet | undefined, logType: string): string {
   if (!set) return "—";
   if (logType === "strength" || logType === "bodyweight") {
@@ -319,7 +384,7 @@ export default function SessionPage() {
                 {se.exercise.name}
               </Link>
               {active && (
-                <span className="text-xs text-faint">rest {(se.restSeconds ?? 90)}s</span>
+                <RestEditor se={se} mutations={mutations} />
               )}
               <button
                 onClick={() => {

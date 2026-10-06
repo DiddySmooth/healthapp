@@ -106,6 +106,13 @@ export function useSessionMutations(sessionId?: number) {
       api.delete<{ session: Session }>(`/api/sessions/${sessionId}/exercises/${seId}`),
     onSuccess: invalidate,
   });
+  const patchExercise = useMutation({
+    mutationFn: (input: { seId: number; restSeconds: number | null }) =>
+      api.patch<{ ok: boolean }>(`/api/sessions/${sessionId}/exercises/${input.seId}`, {
+        restSeconds: input.restSeconds,
+      }),
+    onSuccess: invalidate,
+  });
   const addSet = useMutation({
     mutationFn: (seId: number) =>
       api.post<{ set: WorkoutSet }>(`/api/sessions/${sessionId}/exercises/${seId}/sets`),
@@ -137,6 +144,7 @@ export function useSessionMutations(sessionId?: number) {
     removeSession,
     addExercise,
     removeExercise,
+    patchExercise,
     addSet,
     patchSet,
     removeSet,

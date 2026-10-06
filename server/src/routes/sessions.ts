@@ -373,6 +373,24 @@ export function sessionRoutes(db: Db): Router {
     res.status(201).json({ session: fullSession(req.user!.id, session.id) });
   });
 
+  // Mid-workout tweaks to a session exercise (currently: rest duration).
+  router.patch("/:id/exercises/:seId", (req, res) => {
+    const se = ownedSessionExercise(
+      req.user!.id,
+      Number(req.params.id),
+      Number(req.params.seId),
+    );
+    const input = parseBody(
+      z.object({ restSeconds: z.number().int().min(5).max(900).nullable() }),
+      req.body,
+    );
+    db.update(sessionExercises)
+      .set({ restSeconds: input.restSeconds })
+      .where(eq(sessionExercises.id, se.id))
+      .run();
+    res.json({ ok: true });
+  });
+
   router.delete("/:id/exercises/:seId", (req, res) => {
     const se = ownedSessionExercise(
       req.user!.id,

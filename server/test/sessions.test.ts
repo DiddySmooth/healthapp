@@ -176,6 +176,27 @@ describe("session lifecycle", () => {
     expect(second.exercises[0].previous[0].weight).toBe(100);
   });
 
+  it("can change an exercise's rest mid-session", async () => {
+    const { app } = seededApp();
+    const admin = await setupAdmin(app);
+    const { routineId } = await makeRoutine(admin);
+    const session = (await admin.post("/api/sessions").send({ routineId })).body.session;
+    const se = session.exercises[0];
+    expect(se.restSeconds).toBe(120);
+
+    await admin
+      .patch(`/api/sessions/${session.id}/exercises/${se.id}`)
+      .send({ restSeconds: 180 })
+      .expect(200);
+    const detail = await admin.get(`/api/sessions/${session.id}`).expect(200);
+    expect(detail.body.session.exercises[0].restSeconds).toBe(180);
+
+    await admin
+      .patch(`/api/sessions/${session.id}/exercises/${se.id}`)
+      .send({ restSeconds: 2 })
+      .expect(400);
+  });
+
   it("keeps sessions private between users", async () => {
     const { app } = seededApp();
     const admin = await setupAdmin(app);
