@@ -19,6 +19,7 @@ export type SessionExercise = {
   sessionId: number;
   exerciseId: number;
   position: number;
+  restSeconds: number | null;
   notes: string | null;
   exercise: { id: number; name: string; logType: LogType; images: string[] };
   sets: WorkoutSet[];

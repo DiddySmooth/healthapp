@@ -131,6 +131,12 @@ function RowEditor({
             onChange={(v) => onChange({ ...row, targetDistance: v })}
           />
         )}
+        <TargetInput
+          label="Rest (s)"
+          step="5"
+          value={row.restSeconds}
+          onChange={(v) => onChange({ ...row, restSeconds: v })}
+        />
         <input
           placeholder="Notes"
           value={row.notes ?? ""}
@@ -167,6 +173,7 @@ export default function RoutineForm() {
         targetWeight: re.targetWeight,
         targetDurationSec: re.targetDurationSec,
         targetDistance: re.targetDistance,
+        restSeconds: re.restSeconds,
         notes: re.notes,
         exercise: {
           id: re.exercise.id,

@@ -24,7 +24,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 border-b border-border bg-bg/95 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center gap-2 px-4 py-3">
+        <div className="mx-auto flex h-14 max-w-5xl items-center gap-2 px-4">
           <NavLink to="/" className="mr-4 text-lg font-bold">
             Health<span className="text-accent">App</span>
           </NavLink>

@@ -121,6 +121,8 @@ export const routineExercises = sqliteTable("routine_exercises", {
   targetWeight: real("target_weight"),
   targetDurationSec: integer("target_duration_sec"),
   targetDistance: real("target_distance"),
+  // Per-exercise rest between sets, in seconds; null = app default.
+  restSeconds: integer("rest_seconds"),
   notes: text("notes"),
 });
 
@@ -165,6 +167,8 @@ export const sessionExercises = sqliteTable("session_exercises", {
     .notNull()
     .references(() => exercises.id),
   position: integer("position").notNull(),
+  // Copied from the routine at session start; null = app default.
+  restSeconds: integer("rest_seconds"),
   notes: text("notes"),
 });
 

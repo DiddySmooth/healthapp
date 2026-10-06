@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ExercisePicker from "../components/ExercisePicker";
-import { Button, Card, Select } from "../components/ui";
+import { Button, Card } from "../components/ui";
 import { useMe } from "../lib/auth";
 import {
   formatDuration,
@@ -186,7 +186,6 @@ function SetRow({
   );
 }
 
-const REST_OPTIONS = [30, 60, 90, 120, 180];
 
 export default function SessionPage() {
   const { id } = useParams();
@@ -194,33 +193,33 @@ export default function SessionPage() {
   const { data, isLoading } = useSession(Number(id));
   const mutations = useSessionMutations(Number(id));
   const [showPicker, setShowPicker] = useState(false);
-  const [restSeconds, setRestSeconds] = useState(90);
-  const [restLeft, setRestLeft] = useState<number | null>(null);
-  const restTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Timestamp-based so the countdown survives re-renders and doesn't drift.
+  const [restEndsAt, setRestEndsAt] = useState<number | null>(null);
 
   const session = data?.session;
   const active = session != null && session.finishedAt == null;
-  useTicker(active);
+  useTicker(active || restEndsAt != null);
 
+  const restLeft =
+    restEndsAt != null ? Math.max(0, Math.ceil((restEndsAt - Date.now()) / 1000)) : null;
+
+  const beeped = useRef(false);
   useEffect(() => {
-    return () => {
-      if (restTimer.current) clearInterval(restTimer.current);
-    };
-  }, []);
+    if (restLeft === 0 && !beeped.current) {
+      beeped.current = true;
+      beep();
+      try {
+        navigator.vibrate?.([120, 60, 120]);
+      } catch {
+        // vibration unsupported
+      }
+      setRestEndsAt(null);
+    }
+    if (restLeft != null && restLeft > 0) beeped.current = false;
+  }, [restLeft]);
 
-  function startRest() {
-    if (restTimer.current) clearInterval(restTimer.current);
-    setRestLeft(restSeconds);
-    restTimer.current = setInterval(() => {
-      setRestLeft((left) => {
-        if (left == null || left <= 1) {
-          if (restTimer.current) clearInterval(restTimer.current);
-          if (left === 1) beep();
-          return null;
-        }
-        return left - 1;
-      });
-    }, 1000);
+  function startRest(seconds: number) {
+    setRestEndsAt(Date.now() + seconds * 1000);
   }
 
   if (isLoading) return <p className="py-12 text-center text-muted">Loading…</p>;
@@ -244,34 +243,55 @@ export default function SessionPage() {
     });
   }
 
-  return (
-    <div className="mx-auto max-w-2xl pb-24">
-      <Link
-        to={active ? "/workouts/routines" : "/workouts/history"}
-        className="text-sm text-muted hover:text-fg"
-      >
-        ← {active ? "Workouts" : "History"}
-      </Link>
+  const restDisplay =
+    restLeft != null
+      ? `${Math.floor(restLeft / 60)}:${String(restLeft % 60).padStart(2, "0")}`
+      : null;
 
-      <div className="mt-2 mb-1 flex items-center gap-3">
-        <h1 className="text-2xl font-bold">
-          {session.routineName ?? "Freeform workout"}
-        </h1>
-        {active ? (
-          <span className="ml-auto font-mono text-3xl font-bold tabular-nums text-accent">
-            {formatDuration(session.startedAt, null)}
-          </span>
-        ) : (
-          <span className="ml-auto text-sm text-muted">
-            {new Date(session.startedAt).toLocaleDateString(undefined, {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-            })}
-          </span>
-        )}
+  return (
+    <div className="mx-auto max-w-2xl pb-8">
+      {/* Pinned clocks: elapsed (volt) + rest countdown (amber), always visible
+          below the h-14 navbar while logging. */}
+      <div className="sticky top-14 z-10 -mx-4 border-b border-border bg-bg/95 px-4 py-2 backdrop-blur">
+        <div className="mx-auto flex max-w-2xl items-center gap-3">
+          <Link
+            to={active ? "/workouts/routines" : "/workouts/history"}
+            className="shrink-0 text-sm text-muted hover:text-fg"
+          >
+            ←
+          </Link>
+          <h1 className="min-w-0 truncate text-lg font-extrabold">
+            {session.routineName ?? "Freeform workout"}
+          </h1>
+          {active ? (
+            <span className="ml-auto flex shrink-0 items-center gap-3">
+              {restDisplay != null && (
+                <button
+                  onClick={() => setRestEndsAt(null)}
+                  title="Resting — tap to skip"
+                  className="flex items-center gap-1.5 rounded-full bg-food/15 px-3 py-1 font-mono text-xl font-bold tabular-nums text-food"
+                >
+                  {restDisplay}
+                  <span className="text-xs font-sans font-semibold opacity-70">skip</span>
+                </button>
+              )}
+              <span className="font-mono text-2xl font-bold tabular-nums text-accent">
+                {formatDuration(session.startedAt, null)}
+              </span>
+            </span>
+          ) : (
+            <span className="ml-auto shrink-0 text-sm text-muted">
+              {new Date(session.startedAt).toLocaleDateString(undefined, {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
+          )}
+        </div>
       </div>
-      <p className="mb-4 text-sm text-muted">
+
+      <p className="mb-4 mt-3 text-sm text-muted">
         {completedSets.length} sets done
         {volume > 0 && <> · {Math.round(volume).toLocaleString()} total volume</>}
         {!active && session.finishedAt && (
@@ -298,6 +318,9 @@ export default function SessionPage() {
               >
                 {se.exercise.name}
               </Link>
+              {active && (
+                <span className="text-xs text-faint">rest {(se.restSeconds ?? 90)}s</span>
+              )}
               <button
                 onClick={() => {
                   if (se.sets.length === 0 || window.confirm(`Remove ${se.exercise.name}?`))
@@ -329,7 +352,7 @@ export default function SessionPage() {
                   set={set}
                   index={i}
                   editable
-                  onCompleted={active ? startRest : () => {}}
+                  onCompleted={active ? () => startRest(se.restSeconds ?? 90) : () => {}}
                   mutations={mutations}
                 />
               ))}
@@ -383,36 +406,6 @@ export default function SessionPage() {
         </div>
       </div>
 
-      {active && (
-        <div className="fixed inset-x-0 bottom-0 border-t border-border bg-bg/95 px-4 py-2 backdrop-blur">
-          <div className="mx-auto flex max-w-2xl items-center gap-3">
-            {restLeft != null ? (
-              <>
-                <span className="font-mono text-4xl font-bold tabular-nums text-food">{restLeft}s</span>
-                <span className="text-sm text-muted">rest</span>
-                <Button variant="ghost" className="ml-auto" onClick={() => setRestLeft(null)}>
-                  Skip
-                </Button>
-              </>
-            ) : (
-              <>
-                <span className="text-sm text-muted">Rest timer</span>
-                <Select
-                  value={String(restSeconds)}
-                  onChange={(e) => setRestSeconds(Number(e.target.value))}
-                  className="ml-auto w-24"
-                >
-                  {REST_OPTIONS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}s
-                    </option>
-                  ))}
-                </Select>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -17,7 +17,7 @@ async function makeRoutine(agent: AuthedAgent): Promise<{ routineId: number; exe
     .send({
       name: "Test Day",
       exercises: [
-        { exerciseId: ids[0], targetSets: 3, targetReps: 8, targetWeight: 100 },
+        { exerciseId: ids[0], targetSets: 3, targetReps: 8, targetWeight: 100, restSeconds: 120 },
         { exerciseId: ids[1], targetSets: 2, targetReps: 12 },
       ],
     })
@@ -55,6 +55,9 @@ describe("session lifecycle", () => {
     expect(session.exercises[0].sets[0].reps).toBe(8);
     expect(session.exercises[0].sets[0].completed).toBe(false);
     expect(session.exercises[1].sets).toHaveLength(2);
+    // Per-exercise rest copies from the routine; unset falls back to null.
+    expect(session.exercises[0].restSeconds).toBe(120);
+    expect(session.exercises[1].restSeconds).toBeNull();
   });
 
   it("refuses a second concurrent session and exposes the active one", async () => {

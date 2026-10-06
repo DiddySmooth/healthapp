@@ -229,7 +229,7 @@ export function sessionRoutes(db: Db): Router {
     }
 
     let routineName: string | null = null;
-    let seed: { exerciseId: number; sets: SetSeed[]; }[] = [];
+    let seed: { exerciseId: number; restSeconds: number | null; sets: SetSeed[] }[] = [];
     if (input.routineId != null) {
       const routine = db
         .select()
@@ -257,6 +257,7 @@ export function sessionRoutes(db: Db): Router {
         const prev = (previous[item.exerciseId] ?? []).filter((s) => !s.isWarmup);
         return {
           exerciseId: item.exerciseId,
+          restSeconds: item.restSeconds ?? null,
           sets: Array.from({ length: item.targetSets ?? 1 }, (_, i) => ({
             weight: prev[i]?.weight ?? prev[prev.length - 1]?.weight ?? item.targetWeight,
             reps: prev[i]?.reps ?? prev[prev.length - 1]?.reps ?? item.targetReps,
@@ -285,7 +286,12 @@ export function sessionRoutes(db: Db): Router {
       seed.forEach((item, position) => {
         const se = tx
           .insert(sessionExercises)
-          .values({ sessionId: created.id, exerciseId: item.exerciseId, position })
+          .values({
+            sessionId: created.id,
+            exerciseId: item.exerciseId,
+            position,
+            restSeconds: item.restSeconds,
+          })
           .returning()
           .get();
         item.sets.forEach((s, setPos) => {

@@ -9,6 +9,7 @@ export type RoutineExerciseInput = {
   targetWeight?: number | null;
   targetDurationSec?: number | null;
   targetDistance?: number | null;
+  restSeconds?: number | null;
   notes?: string | null;
 };
 

@@ -19,6 +19,7 @@ const routineExerciseSchema = z.object({
   targetWeight: z.number().min(0).max(5000).nullish(),
   targetDurationSec: z.number().int().min(1).max(86400).nullish(),
   targetDistance: z.number().min(0).max(1000).nullish(),
+  restSeconds: z.number().int().min(5).max(900).nullish(),
   notes: z.string().max(500).nullish(),
 });
 
