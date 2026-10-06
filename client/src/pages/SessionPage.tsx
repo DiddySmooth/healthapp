@@ -384,7 +384,18 @@ export default function SessionPage() {
                 {se.exercise.name}
               </Link>
               {active && (
-                <RestEditor se={se} mutations={mutations} />
+                <>
+                  {se.targetReps != null && (
+                    <span className="text-xs text-faint">
+                      {se.targetReps}
+                      {se.targetRepsMax != null && se.targetRepsMax !== se.targetReps
+                        ? `–${se.targetRepsMax}`
+                        : ""}{" "}
+                      reps
+                    </span>
+                  )}
+                  <RestEditor se={se} mutations={mutations} />
+                </>
               )}
               <button
                 onClick={() => {
@@ -397,6 +408,12 @@ export default function SessionPage() {
                 ✕
               </button>
             </div>
+            {active && se.suggestIncrease && (
+              <div className="mb-2 flex items-center gap-2 rounded-lg bg-accent/10 px-3 py-2 text-xs font-semibold text-accent">
+                <span aria-hidden>↑</span>
+                You hit {se.targetRepsMax} reps on every set last time — add weight
+              </div>
+            )}
             <div className="mb-1 flex items-center gap-2 px-2 text-xs uppercase tracking-wide text-faint">
               <span className="w-7 text-center">Set</span>
               <span className="w-16 text-center">Prev</span>

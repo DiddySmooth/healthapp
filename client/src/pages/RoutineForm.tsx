@@ -98,6 +98,11 @@ function RowEditor({
               value={row.targetReps}
               onChange={(v) => onChange({ ...row, targetReps: v })}
             />
+            <TargetInput
+              label="to (max)"
+              value={row.targetRepsMax}
+              onChange={(v) => onChange({ ...row, targetRepsMax: v })}
+            />
           </>
         )}
         {t === "strength" && (
@@ -172,6 +177,7 @@ export default function RoutineForm() {
         targetReps: re.targetReps,
         targetWeight: re.targetWeight,
         targetDurationSec: re.targetDurationSec,
+        targetRepsMax: re.targetRepsMax,
         targetDistance: re.targetDistance,
         restSeconds: re.restSeconds,
         notes: re.notes,

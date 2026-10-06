@@ -117,6 +117,9 @@ export const routineExercises = sqliteTable("routine_exercises", {
   position: integer("position").notNull(),
   targetSets: integer("target_sets"),
   targetReps: integer("target_reps"),
+  // Optional top of a rep range (double progression): hitting it on every
+  // working set triggers an add-weight recommendation next session.
+  targetRepsMax: integer("target_reps_max"),
   // Stored in the user's weight unit as entered.
   targetWeight: real("target_weight"),
   targetDurationSec: integer("target_duration_sec"),
@@ -169,6 +172,9 @@ export const sessionExercises = sqliteTable("session_exercises", {
   position: integer("position").notNull(),
   // Copied from the routine at session start; null = app default.
   restSeconds: integer("rest_seconds"),
+  // Rep-range targets copied from the routine at session start.
+  targetReps: integer("target_reps"),
+  targetRepsMax: integer("target_reps_max"),
   notes: text("notes"),
 });
 

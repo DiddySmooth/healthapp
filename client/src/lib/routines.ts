@@ -6,6 +6,7 @@ export type RoutineExerciseInput = {
   exerciseId: number;
   targetSets?: number | null;
   targetReps?: number | null;
+  targetRepsMax?: number | null;
   targetWeight?: number | null;
   targetDurationSec?: number | null;
   targetDistance?: number | null;

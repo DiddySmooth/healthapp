@@ -176,6 +176,63 @@ describe("session lifecycle", () => {
     expect(second.exercises[0].previous[0].weight).toBe(100);
   });
 
+  it("recommends adding weight after topping the rep range on all working sets", async () => {
+    const { app } = seededApp();
+    const admin = await setupAdmin(app);
+    const list = await admin.get("/api/exercises?logType=strength&pageSize=1").expect(200);
+    const exerciseId = list.body.exercises[0].id;
+    const routine = (
+      await admin
+        .post("/api/routines")
+        .send({
+          name: "Double Progression",
+          exercises: [
+            { exerciseId, targetSets: 2, targetReps: 8, targetRepsMax: 12, targetWeight: 100 },
+          ],
+        })
+        .expect(201)
+    ).body.routine;
+
+    // Range copies into the session; no history yet → no suggestion.
+    const s1 = (await admin.post("/api/sessions").send({ routineId: routine.id })).body
+      .session;
+    expect(s1.exercises[0].targetReps).toBe(8);
+    expect(s1.exercises[0].targetRepsMax).toBe(12);
+    expect(s1.exercises[0].suggestIncrease).toBe(false);
+
+    // Session 1: hit 12 reps on both working sets (warmup reps are ignored).
+    const se1 = s1.exercises[0];
+    await admin
+      .patch(`/api/sessions/${s1.id}/exercises/${se1.id}/sets/${se1.sets[0].id}`)
+      .send({ reps: 12, completed: true })
+      .expect(200);
+    await admin
+      .patch(`/api/sessions/${s1.id}/exercises/${se1.id}/sets/${se1.sets[1].id}`)
+      .send({ reps: 12, completed: true })
+      .expect(200);
+    await admin.patch(`/api/sessions/${s1.id}`).send({ finished: true }).expect(200);
+
+    const s2 = (await admin.post("/api/sessions").send({ routineId: routine.id })).body
+      .session;
+    expect(s2.exercises[0].suggestIncrease).toBe(true);
+
+    // Session 2: one set falls short of the max → no suggestion next time.
+    const se2 = s2.exercises[0];
+    await admin
+      .patch(`/api/sessions/${s2.id}/exercises/${se2.id}/sets/${se2.sets[0].id}`)
+      .send({ weight: 105, reps: 12, completed: true })
+      .expect(200);
+    await admin
+      .patch(`/api/sessions/${s2.id}/exercises/${se2.id}/sets/${se2.sets[1].id}`)
+      .send({ weight: 105, reps: 9, completed: true })
+      .expect(200);
+    await admin.patch(`/api/sessions/${s2.id}`).send({ finished: true }).expect(200);
+
+    const s3 = (await admin.post("/api/sessions").send({ routineId: routine.id })).body
+      .session;
+    expect(s3.exercises[0].suggestIncrease).toBe(false);
+  });
+
   it("can change an exercise's rest mid-session", async () => {
     const { app } = seededApp();
     const admin = await setupAdmin(app);

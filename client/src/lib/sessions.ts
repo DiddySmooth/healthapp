@@ -20,7 +20,10 @@ export type SessionExercise = {
   exerciseId: number;
   position: number;
   restSeconds: number | null;
+  targetReps: number | null;
+  targetRepsMax: number | null;
   notes: string | null;
+  suggestIncrease: boolean;
   exercise: { id: number; name: string; logType: LogType; images: string[] };
   sets: WorkoutSet[];
   previous: WorkoutSet[];

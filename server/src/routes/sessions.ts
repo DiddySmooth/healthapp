@@ -88,7 +88,7 @@ export function sessionRoutes(db: Db): Router {
             ne(workoutSessions.id, excludeSessionId),
           ),
         )
-        .orderBy(desc(workoutSessions.startedAt))
+        .orderBy(desc(workoutSessions.startedAt), desc(workoutSessions.id))
         .limit(1)
         .get();
       if (lastSe) {
@@ -137,12 +137,24 @@ export function sessionRoutes(db: Db): Router {
     );
     return {
       ...session,
-      exercises: seRows.map((r) => ({
-        ...r.se,
-        exercise: r.exercise,
-        sets: allSets.filter((s) => s.sessionExerciseId === r.se.id),
-        previous: previous[r.se.exerciseId] ?? [],
-      })),
+      exercises: seRows.map((r) => {
+        const prev = previous[r.se.exerciseId] ?? [];
+        // Double progression: every working set hit the top of the rep
+        // range last time → recommend adding weight this session.
+        const working = prev.filter((s) => !s.isWarmup);
+        const suggestIncrease =
+          session.finishedAt == null &&
+          r.se.targetRepsMax != null &&
+          working.length > 0 &&
+          working.every((s) => (s.reps ?? 0) >= r.se.targetRepsMax!);
+        return {
+          ...r.se,
+          exercise: r.exercise,
+          sets: allSets.filter((s) => s.sessionExerciseId === r.se.id),
+          previous: prev,
+          suggestIncrease,
+        };
+      }),
     };
   }
 
@@ -229,7 +241,13 @@ export function sessionRoutes(db: Db): Router {
     }
 
     let routineName: string | null = null;
-    let seed: { exerciseId: number; restSeconds: number | null; sets: SetSeed[] }[] = [];
+    let seed: {
+      exerciseId: number;
+      restSeconds: number | null;
+      targetReps: number | null;
+      targetRepsMax: number | null;
+      sets: SetSeed[];
+    }[] = [];
     if (input.routineId != null) {
       const routine = db
         .select()
@@ -258,6 +276,8 @@ export function sessionRoutes(db: Db): Router {
         return {
           exerciseId: item.exerciseId,
           restSeconds: item.restSeconds ?? null,
+          targetReps: item.targetReps ?? null,
+          targetRepsMax: item.targetRepsMax ?? null,
           sets: Array.from({ length: item.targetSets ?? 1 }, (_, i) => ({
             weight: prev[i]?.weight ?? prev[prev.length - 1]?.weight ?? item.targetWeight,
             reps: prev[i]?.reps ?? prev[prev.length - 1]?.reps ?? item.targetReps,
@@ -291,6 +311,8 @@ export function sessionRoutes(db: Db): Router {
             exerciseId: item.exerciseId,
             position,
             restSeconds: item.restSeconds,
+            targetReps: item.targetReps,
+            targetRepsMax: item.targetRepsMax,
           })
           .returning()
           .get();

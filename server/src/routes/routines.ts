@@ -12,16 +12,23 @@ import {
 } from "../db/schema.js";
 import { ApiError, parseBody } from "../lib/errors.js";
 
-const routineExerciseSchema = z.object({
-  exerciseId: z.number().int().positive(),
-  targetSets: z.number().int().min(1).max(50).nullish(),
-  targetReps: z.number().int().min(1).max(1000).nullish(),
+const routineExerciseSchema = z
+  .object({
+    exerciseId: z.number().int().positive(),
+    targetSets: z.number().int().min(1).max(50).nullish(),
+    targetReps: z.number().int().min(1).max(1000).nullish(),
+    targetRepsMax: z.number().int().min(1).max(1000).nullish(),
   targetWeight: z.number().min(0).max(5000).nullish(),
-  targetDurationSec: z.number().int().min(1).max(86400).nullish(),
-  targetDistance: z.number().min(0).max(1000).nullish(),
-  restSeconds: z.number().int().min(5).max(900).nullish(),
-  notes: z.string().max(500).nullish(),
-});
+    targetDurationSec: z.number().int().min(1).max(86400).nullish(),
+    targetDistance: z.number().min(0).max(1000).nullish(),
+    restSeconds: z.number().int().min(5).max(900).nullish(),
+    notes: z.string().max(500).nullish(),
+  })
+  .refine(
+    (e) =>
+      e.targetRepsMax == null || e.targetReps == null || e.targetRepsMax >= e.targetReps,
+    { message: "Max reps must be at least the minimum reps" },
+  );
 
 const routineSchema = z.object({
   name: z.string().min(1).max(100),
