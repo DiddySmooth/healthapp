@@ -7,7 +7,7 @@ import {
   useExerciseMeta,
   useExerciseMutations,
   type LogType,
-} from "../lib/exercises";
+} from "@healthapp/shared";
 
 function MusclePicker({
   label,

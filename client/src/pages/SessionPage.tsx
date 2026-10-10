@@ -2,15 +2,15 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ExercisePicker from "../components/ExercisePicker";
 import { Button, Card } from "../components/ui";
-import { useMe } from "../lib/auth";
 import {
   formatDuration,
+  type SessionExercise,
   sessionVolume,
+  useMe,
   useSession,
   useSessionMutations,
-  type SessionExercise,
   type WorkoutSet,
-} from "../lib/sessions";
+} from "@healthapp/shared";
 
 function beep() {
   try {

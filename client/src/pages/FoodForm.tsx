@@ -4,15 +4,15 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 const BarcodeScanner = lazy(() => import("../components/BarcodeScanner"));
 import { Button, Card, ErrorText, Field, Input } from "../components/ui";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../lib/api";
 import {
-  useFoodMutations,
-  useLogMutations,
-  useLookup,
+  api,
   type Food,
   type LookupResult,
   type Meal,
-} from "../lib/foods";
+  useFoodMutations,
+  useLogMutations,
+  useLookup,
+} from "@healthapp/shared";
 
 function NumberField({
   label,

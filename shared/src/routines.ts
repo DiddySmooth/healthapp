@@ -87,7 +87,37 @@ export type ScheduleEntry = {
   routineId: number;
   weekday: number | null;
   date: string | null;
+  // Weekday entries only: active on alternating weeks when true, in the
+  // week containing anchorDate and every second week from it.
+  everyOtherWeek: boolean;
+  anchorDate: string | null;
 };
+
+// Local-date start-of-week in ms; noon construction dodges DST edges.
+function startOfWeekMs(iso: string, weekStartsMonday: boolean): number {
+  const d = new Date(`${iso}T12:00:00`);
+  const offset = weekStartsMonday ? (d.getDay() + 6) % 7 : d.getDay();
+  d.setDate(d.getDate() - offset);
+  return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+// Whether a schedule entry is planned for the given local date.
+export function isScheduledOn(
+  entry: ScheduleEntry,
+  dateISO: string,
+  weekStartsMonday: boolean,
+): boolean {
+  if (entry.date != null) return entry.date === dateISO;
+  if (entry.weekday == null) return false;
+  if (new Date(`${dateISO}T12:00:00`).getDay() !== entry.weekday) return false;
+  if (!entry.everyOtherWeek || entry.anchorDate == null) return true;
+  const weeks = Math.round(
+    (startOfWeekMs(dateISO, weekStartsMonday) -
+      startOfWeekMs(entry.anchorDate, weekStartsMonday)) /
+      (7 * 86_400_000),
+  );
+  return ((weeks % 2) + 2) % 2 === 0;
+}
 
 export function useSchedule() {
   return useQuery({
@@ -100,8 +130,13 @@ export function useScheduleMutations() {
   const qc = useQueryClient();
   const invalidate = () => qc.invalidateQueries({ queryKey: ["schedule"] });
   const create = useMutation({
-    mutationFn: (input: { routineId: number; weekday?: number; date?: string }) =>
-      api.post<{ entry: ScheduleEntry }>("/api/schedule", input),
+    mutationFn: (input: {
+      routineId: number;
+      weekday?: number;
+      date?: string;
+      everyOtherWeek?: boolean;
+      anchorDate?: string;
+    }) => api.post<{ entry: ScheduleEntry }>("/api/schedule", input),
     onSuccess: invalidate,
   });
   const remove = useMutation({

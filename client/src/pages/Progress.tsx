@@ -3,20 +3,20 @@ import { useState, type FormEvent } from "react";
 import { ChartCard, DailyBars, TrendLines, shortDate } from "../components/charts";
 import WorkoutHeatmap from "../components/WorkoutHeatmap";
 import { Button, Card, Field, Input, Select } from "../components/ui";
-import { api } from "../lib/api";
-import { useMe } from "../lib/auth";
-import { todayISO } from "../lib/foods";
-import { useExercises } from "../lib/exercises";
 import {
+  api,
+  type MetricType,
   metricTypes,
+  todayISO,
   useCaloriesHistory,
+  useExercises,
+  useMe,
   useMetricMutations,
   useMetrics,
   useVolumeHistory,
   useWaterHistory,
-  type MetricType,
-} from "../lib/metrics";
-import type { WorkoutSet } from "../lib/sessions";
+  type WorkoutSet,
+} from "@healthapp/shared";
 
 import { chartColors } from "../components/charts";
 

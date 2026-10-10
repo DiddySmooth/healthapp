@@ -2,22 +2,23 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Sparkline } from "../components/charts";
 import { Button, Card, Input } from "../components/ui";
-import { ApiError } from "../lib/api";
-import { useMe } from "../lib/auth";
-import { todayISO, useDayLog } from "../lib/foods";
 import {
+  ApiError,
+  formatDuration,
+  isScheduledOn,
+  todayISO,
+  useActiveSession,
+  useDayLog,
+  useMe,
   useMetricMutations,
   useMetrics,
-  useWaterDay,
-  useWaterMutations,
-} from "../lib/metrics";
-import { useRoutines, useSchedule } from "../lib/routines";
-import {
-  formatDuration,
-  useActiveSession,
+  useRoutines,
+  useSchedule,
   useSessionHistory,
   useSessionMutations,
-} from "../lib/sessions";
+  useWaterDay,
+  useWaterMutations,
+} from "@healthapp/shared";
 
 function Bar({ value, target, color }: { value: number; target: number | null; color: string }) {
   const pct = target != null && target > 0 ? Math.min(100, (value / target) * 100) : 0;
@@ -71,6 +72,7 @@ function CaloriesCard() {
 
 function WorkoutCard() {
   const navigate = useNavigate();
+  const { data: user } = useMe();
   const { data: activeData } = useActiveSession();
   const { data: scheduleData } = useSchedule();
   const { data: routinesData } = useRoutines();
@@ -78,10 +80,10 @@ function WorkoutCard() {
   const { start } = useSessionMutations();
 
   const active = activeData?.session;
-  const today = new Date();
   const todayIso = todayISO();
+  const weekStartsMonday = (user?.settings.weekStart ?? "monday") === "monday";
   const plannedIds = (scheduleData?.entries ?? [])
-    .filter((e) => e.weekday === today.getDay() || e.date === todayIso)
+    .filter((e) => isScheduledOn(e, todayIso, weekStartsMonday))
     .map((e) => e.routineId);
   const planned = (routinesData?.routines ?? []).filter((r) => plannedIds.includes(r.id));
   const last = historyData?.sessions[0];

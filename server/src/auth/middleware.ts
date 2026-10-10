@@ -3,6 +3,7 @@ import type { Db } from "../db/index.js";
 import type { User } from "../db/schema.js";
 import { ApiError } from "../lib/errors.js";
 import { findUserById } from "./service.js";
+import { bearerToken, resolveToken } from "./tokens.js";
 
 declare module "express-session" {
   interface SessionData {
@@ -18,11 +19,13 @@ declare module "express-serve-static-core" {
 
 export function requireAuth(db: Db) {
   return (req: Request, _res: Response, next: NextFunction): void => {
-    const userId = req.session.userId;
+    // Native clients send a bearer token; the web app uses the session cookie.
+    const token = bearerToken(req.headers.authorization);
+    const userId = token ? resolveToken(db, token) : req.session.userId;
     if (userId == null) return next(new ApiError(401, "UNAUTHORIZED", "Not logged in"));
     const user = findUserById(db, userId);
     if (!user || !user.isActive) {
-      req.session.destroy(() => {});
+      if (!token) req.session.destroy(() => {});
       return next(new ApiError(401, "UNAUTHORIZED", "Not logged in"));
     }
     req.user = user;

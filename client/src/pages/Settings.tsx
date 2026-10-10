@@ -1,8 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 import { Button, Card, ErrorText, Field, Input, Select } from "../components/ui";
-import { api, type User, type UserSettings } from "../lib/api";
-import { useMe, useUpdateSettings } from "../lib/auth";
+import { api, useMe, type User, type UserSettings, useUpdateSettings } from "@healthapp/shared";
 
 const timezones: string[] =
   typeof Intl.supportedValuesOf === "function"

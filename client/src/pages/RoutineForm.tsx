@@ -2,12 +2,14 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import ExercisePicker from "../components/ExercisePicker";
 import { Button, Card, ErrorText, Field, Input } from "../components/ui";
-import { logTypeLabels, type Exercise, type LogType } from "../lib/exercises";
 import {
+  type Exercise,
+  type LogType,
+  logTypeLabels,
+  type RoutineExerciseInput,
   useRoutine,
   useRoutineMutations,
-  type RoutineExerciseInput,
-} from "../lib/routines";
+} from "@healthapp/shared";
 
 type Row = RoutineExerciseInput & {
   exercise: { id: number; name: string; logType: LogType };

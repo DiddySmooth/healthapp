@@ -143,6 +143,35 @@ describe("schedule", () => {
     expect(list.body.entries).toHaveLength(2);
   });
 
+  it("creates alternating-week entries and validates them", async () => {
+    const { app } = seededApp();
+    const admin = await setupAdmin(app);
+    const [a] = await someExerciseIds(admin, 1);
+    const routine = (
+      await admin
+        .post("/api/routines")
+        .send({ name: "B Week", exercises: [{ exerciseId: a }] })
+        .expect(201)
+    ).body.routine;
+
+    const res = await admin
+      .post("/api/schedule")
+      .send({ routineId: routine.id, weekday: 1, everyOtherWeek: true, anchorDate: "2026-10-12" })
+      .expect(201);
+    expect(res.body.entry.everyOtherWeek).toBe(true);
+    expect(res.body.entry.anchorDate).toBe("2026-10-12");
+
+    // Alternating needs an anchor, and only applies to weekday entries.
+    await admin
+      .post("/api/schedule")
+      .send({ routineId: routine.id, weekday: 1, everyOtherWeek: true })
+      .expect(400);
+    await admin
+      .post("/api/schedule")
+      .send({ routineId: routine.id, date: "2026-10-12", everyOtherWeek: true, anchorDate: "2026-10-12" })
+      .expect(400);
+  });
+
   it("rejects entries with both or neither of weekday/date", async () => {
     const { app } = seededApp();
     const admin = await setupAdmin(app);

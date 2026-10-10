@@ -4,8 +4,12 @@ import { Button, Card, Input } from "../components/ui";
 
 // Lazy: the ZXing decoder is ~150KB and only needed when scanning.
 const BarcodeScanner = lazy(() => import("../components/BarcodeScanner"));
-import { useMe } from "../lib/auth";
 import {
+  type Food,
+  type LogEntry,
+  type LookupResult,
+  type MacroTotals,
+  type Meal,
   mealLabels,
   meals,
   shiftDate,
@@ -15,13 +19,9 @@ import {
   useFoods,
   useLogMutations,
   useLookup,
+  useMe,
   useRecentFoods,
-  type Food,
-  type LogEntry,
-  type LookupResult,
-  type MacroTotals,
-  type Meal,
-} from "../lib/foods";
+} from "@healthapp/shared";
 
 function MacroBar({
   label,

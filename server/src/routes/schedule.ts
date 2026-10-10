@@ -6,17 +6,25 @@ import type { Db } from "../db/index.js";
 import { routines, schedule } from "../db/schema.js";
 import { ApiError, parseBody } from "../lib/errors.js";
 
+const dateString = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD");
+
 const entrySchema = z
   .object({
     routineId: z.number().int().positive(),
     weekday: z.number().int().min(0).max(6).nullish(),
-    date: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD")
-      .nullish(),
+    date: dateString.nullish(),
+    everyOtherWeek: z.boolean().optional(),
+    // A date inside an "on" week; required for alternating entries.
+    anchorDate: dateString.nullish(),
   })
   .refine((e) => (e.weekday != null) !== (e.date != null), {
     message: "Provide exactly one of weekday or date",
+  })
+  .refine((e) => !e.everyOtherWeek || e.weekday != null, {
+    message: "Alternating cadence only applies to weekday entries",
+  })
+  .refine((e) => !e.everyOtherWeek || e.anchorDate != null, {
+    message: "Alternating entries need an anchorDate",
   });
 
 export function scheduleRoutes(db: Db): Router {
@@ -47,6 +55,8 @@ export function scheduleRoutes(db: Db): Router {
         routineId: input.routineId,
         weekday: input.weekday ?? null,
         date: input.date ?? null,
+        everyOtherWeek: input.everyOtherWeek ?? false,
+        anchorDate: input.everyOtherWeek ? (input.anchorDate ?? null) : null,
       })
       .returning()
       .get();

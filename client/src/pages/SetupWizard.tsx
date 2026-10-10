@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useSetup } from "../lib/auth";
+import { useSetup } from "@healthapp/shared";
 import { Button, Card, ErrorText, Field, Input, Select } from "../components/ui";
 
 const timezones: string[] =

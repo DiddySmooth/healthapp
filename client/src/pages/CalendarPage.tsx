@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Button, Card, Select } from "../components/ui";
-import { useMe } from "../lib/auth";
 import {
+  type Routine,
+  type ScheduleEntry,
+  useMe,
   useRoutines,
   useSchedule,
   useScheduleMutations,
-  type Routine,
-  type ScheduleEntry,
-} from "../lib/routines";
+  isScheduledOn,
+} from "@healthapp/shared";
 
 const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -82,11 +83,38 @@ export default function CalendarPage() {
 
   const weekdayOrder = weekStartsMonday ? [1, 2, 3, 4, 5, 6, 0] : [0, 1, 2, 3, 4, 5, 6];
   const recurring = (weekday: number) => entries.filter((e) => e.weekday === weekday);
-  const oneOffs = (date: string) => entries.filter((e) => e.date === date);
-  const entriesFor = (d: Date): ScheduleEntry[] => [
-    ...recurring(d.getDay()),
-    ...oneOffs(toISO(d)),
-  ];
+  const entriesFor = (d: Date): ScheduleEntry[] =>
+    entries.filter((e) => isScheduledOn(e, toISO(d), weekStartsMonday));
+  // Is an alternating entry active during the currently displayed week?
+  const activeThisWeek = (e: ScheduleEntry) =>
+    isScheduledOn(e, nextDateForWeekday(e.weekday ?? 0), weekStartsMonday);
+
+  // The date of this weekday within the current real-world week.
+  function nextDateForWeekday(weekday: number): string {
+    const now = new Date();
+    const offsetToday = weekStartsMonday ? (now.getDay() + 6) % 7 : now.getDay();
+    const offsetTarget = weekStartsMonday ? (weekday + 6) % 7 : weekday;
+    now.setDate(now.getDate() - offsetToday + offsetTarget);
+    return toISO(now);
+  }
+
+  const [cadence, setCadence] = useState<"weekly" | "alt-on" | "alt-off">("weekly");
+
+  function addWeekday(routineId: number, weekday: number) {
+    if (cadence === "weekly") {
+      create.mutate({ routineId, weekday });
+      return;
+    }
+    // Anchor in this week for "starting this week", next week otherwise.
+    const anchor = new Date(`${nextDateForWeekday(weekday)}T12:00:00`);
+    if (cadence === "alt-off") anchor.setDate(anchor.getDate() + 7);
+    create.mutate({
+      routineId,
+      weekday,
+      everyOtherWeek: true,
+      anchorDate: toISO(anchor),
+    });
+  }
 
   function changeMonth(delta: number) {
     const next = new Date(year, month + delta, 1);
@@ -103,6 +131,18 @@ export default function CalendarPage() {
   return (
     <div className="flex flex-col gap-6">
       <Card title="Weekly schedule">
+        <div className="mb-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+          New entries repeat
+          <Select
+            value={cadence}
+            onChange={(e) => setCadence(e.target.value as typeof cadence)}
+            className="w-auto"
+          >
+            <option value="weekly">every week</option>
+            <option value="alt-on">every other week — starting this week</option>
+            <option value="alt-off">every other week — starting next week</option>
+          </Select>
+        </div>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
           {weekdayOrder.map((wd) => (
             <div key={wd} className="rounded-lg bg-surface-2/50 p-2">
@@ -116,6 +156,18 @@ export default function CalendarPage() {
                     className="flex items-center gap-1 rounded bg-surface px-2 py-1 text-sm"
                   >
                     <span className="flex-1 truncate">{routineName(e.routineId)}</span>
+                    {e.everyOtherWeek && (
+                      <span
+                        className={`shrink-0 rounded-full px-1.5 text-[10px] font-semibold ${
+                          activeThisWeek(e)
+                            ? "bg-accent/15 text-accent"
+                            : "bg-raised text-faint"
+                        }`}
+                        title="Alternating weeks"
+                      >
+                        {activeThisWeek(e) ? "this wk" : "next wk"}
+                      </span>
+                    )}
                     <button
                       onClick={() => remove.mutate(e.id)}
                       className="text-faint hover:text-danger"
@@ -128,7 +180,7 @@ export default function CalendarPage() {
               </ul>
               <AddRoutineSelect
                 routines={routines}
-                onAdd={(routineId) => create.mutate({ routineId, weekday: wd })}
+                onAdd={(routineId) => addWeekday(routineId, wd)}
               />
             </div>
           ))}

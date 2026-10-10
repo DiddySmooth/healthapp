@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+data
+.git
+.claude
+docs
+# The image only needs the mobile workspace's manifest (for the lockfile).
+mobile/*
+!mobile/package.json

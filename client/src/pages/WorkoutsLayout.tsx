@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { formatDuration, useActiveSession } from "../lib/sessions";
+import { formatDuration, useActiveSession } from "@healthapp/shared";
 
 const tabs = [
   { to: "/workouts/exercises", label: "Exercises" },

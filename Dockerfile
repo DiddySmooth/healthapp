@@ -1,10 +1,16 @@
+# Every stage copies all workspace manifests so the lockfile validates, but
+# installs only the workspaces it needs (never the Expo/mobile toolchain).
+
 # ---- Build client ----
 FROM node:22-bookworm-slim AS client-build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY client/package.json client/
 COPY server/package.json server/
-RUN npm ci
+COPY shared/package.json shared/
+COPY mobile/package.json mobile/
+RUN npm ci --workspace client --workspace shared --include-workspace-root
+COPY shared shared
 COPY client client
 RUN npm run build -w client
 
@@ -14,7 +20,9 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY client/package.json client/
 COPY server/package.json server/
-RUN npm ci
+COPY shared/package.json shared/
+COPY mobile/package.json mobile/
+RUN npm ci --workspace server --include-workspace-root
 COPY server server
 RUN npm run build -w server
 
@@ -24,6 +32,8 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 COPY client/package.json client/
 COPY server/package.json server/
+COPY shared/package.json shared/
+COPY mobile/package.json mobile/
 RUN npm ci --omit=dev --workspace server
 
 # ---- Runtime ----

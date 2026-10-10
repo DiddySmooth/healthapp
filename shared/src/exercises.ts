@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api } from "./api";
+import { api, assetUrl } from "./api";
 
 export type LogType = "strength" | "bodyweight" | "cardio" | "duration";
 
@@ -38,7 +38,7 @@ export const logTypeLabels: Record<LogType, string> = {
 };
 
 export function exerciseImageUrl(path: string): string {
-  return `/exercise-images/${path}`;
+  return assetUrl(`/exercise-images/${path}`);
 }
 
 export function useExercises(filters: ExerciseFilters) {

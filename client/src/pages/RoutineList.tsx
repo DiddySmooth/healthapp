@@ -1,8 +1,13 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button, Card } from "../components/ui";
-import { ApiError } from "../lib/api";
-import { useRoutineMutations, useRoutines, type Routine } from "../lib/routines";
-import { useActiveSession, useSessionMutations } from "../lib/sessions";
+import {
+  ApiError,
+  type Routine,
+  useActiveSession,
+  useRoutineMutations,
+  useRoutines,
+  useSessionMutations,
+} from "@healthapp/shared";
 
 function RoutineCard({ routine }: { routine: Routine }) {
   const { duplicate, remove } = useRoutineMutations();

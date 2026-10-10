@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Input } from "./ui";
-import { logTypeLabels, useExercises, type Exercise } from "../lib/exercises";
+import { logTypeLabels, useExercises, type Exercise } from "@healthapp/shared";
 
 export default function ExercisePicker({ onPick }: { onPick: (ex: Exercise) => void }) {
   const [search, setSearch] = useState("");

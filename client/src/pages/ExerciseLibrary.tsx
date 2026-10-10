@@ -8,7 +8,7 @@ import {
   useExercises,
   type Exercise,
   type LogType,
-} from "../lib/exercises";
+} from "@healthapp/shared";
 
 function ExerciseCard({ exercise }: { exercise: Exercise }) {
   const img = exercise.images[0];

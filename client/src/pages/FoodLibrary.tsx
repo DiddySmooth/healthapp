@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button, Card, Input } from "../components/ui";
-import { useFoodMutations, useFoods, type Food } from "../lib/foods";
+import { useFoodMutations, useFoods, type Food } from "@healthapp/shared";
 
 function FoodRow({ food }: { food: Food }) {
   const { remove } = useFoodMutations();

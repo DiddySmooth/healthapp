@@ -57,6 +57,21 @@ export const sessions = sqliteTable("sessions", {
   expire: integer("expire").notNull(),
 });
 
+// Bearer tokens for native clients, which can't rely on the session cookie.
+// Only the SHA-256 of the token is stored; the raw token is shown once.
+export const apiTokens = sqliteTable("api_tokens", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  deviceName: text("device_name"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  lastUsedAt: integer("last_used_at", { mode: "timestamp" }),
+});
+
 // How an exercise is logged; drives which set fields the UI collects.
 export type LogType = "strength" | "bodyweight" | "cardio" | "duration";
 
@@ -144,6 +159,12 @@ export const schedule = sqliteTable("schedule", {
     .references(() => routines.id, { onDelete: "cascade" }),
   weekday: integer("weekday"),
   date: text("date"),
+  // Weekday entries only: when true, active on alternating weeks — the
+  // week containing anchorDate and every second week from it.
+  everyOtherWeek: integer("every_other_week", { mode: "boolean" })
+    .notNull()
+    .default(false),
+  anchorDate: text("anchor_date"),
 });
 
 export type ScheduleEntry = typeof schedule.$inferSelect;

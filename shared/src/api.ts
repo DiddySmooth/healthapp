@@ -8,13 +8,38 @@ export class ApiError extends Error {
   }
 }
 
+// The web app talks to its own origin with the session cookie (the
+// defaults). The native app points baseUrl at the user's server and
+// authenticates with a bearer token.
+type ApiConfig = {
+  baseUrl: string;
+  getToken: () => string | null;
+  onUnauthorized?: () => void;
+};
+
+const config: ApiConfig = { baseUrl: "", getToken: () => null };
+
+export function configureApi(patch: Partial<ApiConfig>): void {
+  Object.assign(config, patch);
+}
+
+// Server-relative paths (exercise images) resolved against the server.
+export function assetUrl(path: string): string {
+  return /^https?:/.test(path) ? path : config.baseUrl + path;
+}
+
 async function request<T>(method: string, url: string, body?: unknown): Promise<T> {
-  const res = await fetch(url, {
+  const headers: Record<string, string> = {};
+  if (body !== undefined) headers["Content-Type"] = "application/json";
+  const token = config.getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+  const res = await fetch(config.baseUrl + url, {
     method,
     credentials: "same-origin",
-    headers: body !== undefined ? { "Content-Type": "application/json" } : undefined,
+    headers,
     body: body !== undefined ? JSON.stringify(body) : undefined,
   });
+  if (res.status === 401 && token) config.onUnauthorized?.();
   if (!res.ok) {
     let code = "UNKNOWN";
     let message = res.statusText;

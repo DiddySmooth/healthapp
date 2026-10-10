@@ -9,6 +9,7 @@ import {
   hashPassword,
   toPublicUser,
 } from "../auth/service.js";
+import { revokeUserTokens } from "../auth/tokens.js";
 import type { Db } from "../db/index.js";
 import { users } from "../db/schema.js";
 import { ApiError, parseBody } from "../lib/errors.js";
@@ -66,6 +67,8 @@ export function userRoutes(db: Db): Router {
       .where(eq(users.id, target.id))
       .returning()
       .get();
+    // A reset password should also sign out the user's native devices.
+    if (patch.password != null) revokeUserTokens(db, target.id);
     res.json({ user: toPublicUser(updated) });
   });
 

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
-import { useLogout, useMe } from "../lib/auth";
+import { useLogout, useMe } from "@healthapp/shared";
 
 const links = [
   { to: "/", label: "Dashboard" },

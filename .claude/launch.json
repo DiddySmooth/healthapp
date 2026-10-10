@@ -4,8 +4,27 @@
     {
       "name": "healthapp-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "healthapp-mobile",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "start",
+        "-w",
+        "mobile",
+        "--",
+        "--android",
+        "--port",
+        "8082"
+      ],
+      "port": 8082,
+      "autoPort": false
     }
   ]
 }

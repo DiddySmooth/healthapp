@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useLogin } from "../lib/auth";
+import { useLogin } from "@healthapp/shared";
 import { Button, Card, ErrorText, Field, Input } from "../components/ui";
 
 export default function Login() {

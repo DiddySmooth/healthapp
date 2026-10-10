@@ -10,6 +10,7 @@ import {
   userCount,
   verifyPassword,
 } from "../auth/service.js";
+import { bearerToken, issueToken, revokeToken } from "../auth/tokens.js";
 import type { Db } from "../db/index.js";
 import { users } from "../db/schema.js";
 import { ApiError, parseBody } from "../lib/errors.js";
@@ -73,6 +74,30 @@ export function authRoutes(db: Db): Router {
     }
     req.session.userId = user.id;
     res.json({ user: toPublicUser(user) });
+  });
+
+  // Native-app login: same credential checks, but returns a bearer token
+  // instead of setting a session cookie.
+  router.post("/token", (req, res) => {
+    const input = parseBody(
+      loginSchema.extend({ deviceName: z.string().max(100).optional() }),
+      req.body,
+    );
+    const user = findUserByUsername(db, input.username);
+    if (!user || !verifyPassword(input.password, user.passwordHash)) {
+      throw new ApiError(401, "BAD_CREDENTIALS", "Invalid username or password");
+    }
+    if (!user.isActive) {
+      throw new ApiError(403, "DEACTIVATED", "This account has been deactivated");
+    }
+    const token = issueToken(db, user.id, input.deviceName ?? null);
+    res.status(201).json({ token, user: toPublicUser(user) });
+  });
+
+  router.delete("/token", (req, res) => {
+    const token = bearerToken(req.headers.authorization);
+    if (token) revokeToken(db, token);
+    res.json({ ok: true });
   });
 
   router.post("/logout", (req, res) => {

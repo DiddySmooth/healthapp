@@ -2,14 +2,14 @@ import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button, Card } from "../components/ui";
-import { api } from "../lib/api";
 import {
+  api,
   exerciseImageUrl,
   logTypeLabels,
   useExercise,
   useExerciseMutations,
-} from "../lib/exercises";
-import type { WorkoutSet } from "../lib/sessions";
+  type WorkoutSet,
+} from "@healthapp/shared";
 
 type PRs = {
   maxWeight: { weight: number; reps: number; date: string } | null;

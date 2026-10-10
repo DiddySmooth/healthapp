@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
-import { useAuthStatus, useMe } from "./lib/auth";
+import { useAuthStatus, useMe } from "@healthapp/shared";
 import CalendarPage from "./pages/CalendarPage";
 import Dashboard from "./pages/Dashboard";
 import ExerciseDetail from "./pages/ExerciseDetail";
